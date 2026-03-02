@@ -1,0 +1,21 @@
+/* Dashboard Page Styles */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 2rem;
+}
+
+.sectionPicker {
+  margin-bottom: 1.5rem;
+}
+
+.formArea {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+}
