@@ -1,0 +1,140 @@
+/* ================================
+   Modern Reset (Josh Comeau–style)
+   ================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* ================================
+   Theme Variables
+   ================================ */
+:root {
+  --navy: #0b1f3a;
+  --navy-soft: #162f54;
+  --navy-accent: #1f4fd8;
+
+  --bg: #ffffff;
+  --surface: #f7f9fc;
+  --border: #dce3ee;
+
+  --text: #0f172a;
+  --text-muted: #475569;
+
+  --success: #166534;
+  --error: #991b1b;
+}
+
+/* ================================
+   Layout Helpers
+   ================================ */
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* ================================
+   Typography
+   ================================ */
+h1 {
+  font-size: 1.75rem;
+  margin-bottom: 1rem;
+  color: var(--navy);
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+/* ================================
+   Forms
+   ================================ */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--navy-accent);
+  box-shadow: 0 0 0 2px rgba(31, 79, 216, 0.15);
+}
+
+textarea {
+  resize: vertical;
+}
+
+button {
+  background: var(--navy);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+}
+
+button:hover {
+  background: var(--navy-soft);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================================
+   Utility
+   ================================ */
+.stack > * + * {
+  margin-top: 1rem;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+}
