@@ -1,218 +1,148 @@
 "use client";
 
-import { useState, ChangeEvent } from "react";
+import { useState } from "react";
+import { addDoc, collection } from "firebase/firestore";
+import { db } from "../lib/firebase"; // adjust path
 
 type Category = "club" | "pantry" | "events";
 
-type FormState = {
-  category: Category | "";
-  title: string;
-  description: string;
-  eventDate: string;
-  link: string;
-  images: File[];
-};
+export default function SubmissionForm() {
+  const [category, setCategory] = useState<Category | "">("");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [eventDate, setEventDate] = useState("");
+  const [link, setLink] = useState("");
+  const [images, setImages] = useState<File[]>([]);
+  const [submitting, setSubmitting] = useState(false);
 
-export default function Page() {
-  const [form, setForm] = useState<FormState>({
-    category: "",
-    title: "",
-    description: "",
-    eventDate: "",
-    link: "",
-    images: [],
-  });
+  const uploadToCloudinary = async (file: File) => {
+    const data = new FormData();
+    data.append("file", file);
+    data.append("upload_preset", "YOUR_UNSIGNED_PRESET");
 
-  const updateField = <K extends keyof FormState>(
-    key: K,
-    value: FormState[K]
-  ) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload`,
+      { method: "POST", body: data }
+    );
+    const json = await res.json();
+    return json.secure_url as string;
   };
 
-  const handleSubmit = () => {
-    console.log(form);
-    alert("Submitted (check console)");
-  };
+  const handleSubmit = async () => {
+    if (!title || !description || !category) {
+      alert("Fill out required fields");
+      return;
+    }
 
-  return (
-    <main className="container">
-      <div className="stack">
-        <h1>Internal Update Submission</h1>
+    setSubmitting(true);
+    try {
+      // Upload images
+      const imageUrls = await Promise.all(images.map(uploadToCloudinary));
 
-        <CategorySelect
-          value={form.category}
-          onChange={(v) => updateField("category", v)}
-        />
+      // Save to Firestore
+      await addDoc(collection(db, "pending_submissions"), {
+        category,
+        title,
+        description,
+        eventDate: category === "events" ? eventDate : null,
+        link: link || null,
+        images: imageUrls,
+        createdAt: new Date(),
+      });
 
-        <TextInput
-          label="Title"
-          value={form.title}
-          onChange={(v) => updateField("title", v)}
-        />
-
-        <TextArea
-          label="Description"
-          value={form.description}
-          onChange={(v) => updateField("description", v)}
-        />
-
-        {form.category === "events" && (
-          <DateInput
-            label="Event Date"
-            value={form.eventDate}
-            onChange={(v) => updateField("eventDate", v)}
-          />
-        )}
-
-        <TextInput
-          label="Link"
-          type="url"
-          placeholder="https://..."
-          value={form.link}
-          onChange={(v) => updateField("link", v)}
-        />
-
-        <FileUpload
-          label="Upload Images"
-          onChange={(files) => updateField("images", files)}
-        />
-
-        <button onClick={handleSubmit}>Submit</button>
-      </div>
-    </main>
-  );
-}
-
-/* -----------------------------
-   Small UI helpers
------------------------------- */
-
-function Debug({ data }: { data: FormState }) {
-  return (
-    <pre
-      style={{
-        background: "#111",
-        color: "#0f0",
-        padding: 12,
-        borderRadius: 6,
-        fontSize: 12,
-      }}
-    >
-      {JSON.stringify(
-        { ...data, images: data.images.map((f) => f.name) },
-        null,
-        2
-      )}
-    </pre>
-  );
-}
-
-function CategorySelect({
-  value,
-  onChange,
-}: {
-  value: Category | "";
-  onChange: (v: Category | "") => void;
-}) {
-  return (
-    <label>
-      Category
-      <select value={value} onChange={(e) => onChange(e.target.value as Category)}>
-        <option value="">Select one</option>
-        <option value="club">Club</option>
-        <option value="pantry">Pantry</option>
-        <option value="events">Events</option>
-      </select>
-    </label>
-  );
-}
-
-function TextInput({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-}) {
-  return (
-    <label>
-      {label}
-      <input
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function TextArea({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label>
-      {label}
-      <textarea
-        rows={4}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function DateInput({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <label>
-      {label}
-      <input
-        type="date"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </label>
-  );
-}
-
-function FileUpload({
-  label,
-  onChange,
-}: {
-  label: string;
-  onChange: (files: File[]) => void;
-}) {
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      onChange(Array.from(e.target.files));
+      alert("Submission saved!");
+      // Reset form
+      setCategory("");
+      setTitle("");
+      setDescription("");
+      setEventDate("");
+      setLink("");
+      setImages([]);
+    } catch (err) {
+      console.error(err);
+      alert("Error saving submission");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <label>
-      {label}
-      <input type="file" multiple accept="image/*" onChange={handleChange} />
-    </label>
+    <div style={{ maxWidth: 600, padding: 24, fontFamily: "system-ui" }}>
+      <h1>Internal Update Submission</h1>
+
+      <label>
+        Category
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value as Category)}
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        >
+          <option value="">Select one</option>
+          <option value="club">Club</option>
+          <option value="pantry">Pantry</option>
+          <option value="events">Events</option>
+        </select>
+      </label>
+
+      <label>
+        Title
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        />
+      </label>
+
+      <label>
+        Description
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={4}
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        />
+      </label>
+
+      {category === "events" && (
+        <label>
+          Event Date
+          <input
+            type="date"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            style={{ display: "block", width: "100%", marginBottom: 12 }}
+          />
+        </label>
+      )}
+
+      <label>
+        Link
+        <input
+          type="url"
+          placeholder="https://..."
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          style={{ display: "block", width: "100%", marginBottom: 12 }}
+        />
+      </label>
+
+      <label>
+        Upload Images
+        <input
+          type="file"
+          multiple
+          accept="image/*"
+          onChange={(e) => {
+            if (e.target.files) setImages(Array.from(e.target.files));
+          }}
+          style={{ display: "block", marginBottom: 16 }}
+        />
+      </label>
+
+      <button onClick={handleSubmit} disabled={submitting}>
+        {submitting ? "Submitting..." : "Submit"}
+      </button>
+    </div>
   );
 }

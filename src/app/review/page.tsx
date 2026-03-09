@@ -1,229 +1,135 @@
-import { useState } from "react";
+"use client";
 
-/* ─────────────────── TYPES ─────────────────── */
+import { useEffect, useState } from "react";
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  addDoc,
+} from "firebase/firestore";
+import { db } from "../../lib/firebase"; // adjust path
 
-type Page = "login" | "dashboard" | "review";
+type Category = "club" | "pantry" | "events";
 
-type SectionKey =
-  | "clubs"
-  | "tutors"
-  | "events"
-  | "executives"
-  | "booking"
-  | "grants"
-  | "bluecard";
-
-type FieldType = "text" | "textarea" | "file";
-
-type FormField = {
-  name: string;
-  label: string;
-  type: FieldType;
-  placeholder?: string;
-};
-
-type Toast = {
-  type: "success" | "error";
-  msg: string;
-};
-
-type PendingSubmission = {
+interface PendingSubmission {
   id: string;
-  section: SectionKey;
-  submittedBy: string;
-  data: Record<string, unknown>;
-};
+  title: string;
+  description: string;
+  category: Category;
+  eventDate?: string;
+  link?: string;
+  images?: string[];
+  createdAt: any;
+}
 
-/* ─────────────────── CONSTANTS ─────────────────── */
+export default function PendingSubmissionsPage() {
+  const [pending, setPending] = useState<PendingSubmission[]>([]);
 
-const SECTIONS: {
-  value: SectionKey;
-  label: string;
-  icon: string;
-}[] = [
-  { value: "clubs", label: "Clubs", icon: "◈" },
-  { value: "tutors", label: "Tutors", icon: "◉" },
-  { value: "events", label: "Events", icon: "◆" },
-  { value: "executives", label: "Executives", icon: "◇" },
-  { value: "booking", label: "Booking & Fees", icon: "▣" },
-  { value: "grants", label: "Grants & Subsidies", icon: "◎" },
-  { value: "bluecard", label: "Blue Card Collaborators", icon: "▤" },
-];
-
-const FORM_FIELDS: Record<SectionKey, FormField[]> = {
-  clubs: [
-    { name: "clubName", label: "Club Name", type: "text" },
-    { name: "description", label: "Description", type: "textarea" },
-    { name: "contactEmail", label: "Contact Email", type: "text" },
-    { name: "website", label: "Website URL", type: "text" },
-    { name: "logo", label: "Club Logo", type: "file" },
-  ],
-  tutors: [
-    { name: "tutorName", label: "Tutor Name", type: "text" },
-    { name: "course", label: "Course Code", type: "text" },
-    { name: "availability", label: "Availability", type: "textarea" },
-    { name: "contactEmail", label: "Contact Email", type: "text" },
-  ],
-  events: [
-    { name: "title", label: "Event Title", type: "text" },
-    { name: "date", label: "Date", type: "text", placeholder: "YYYY-MM-DD" },
-    { name: "location", label: "Location", type: "text" },
-    { name: "description", label: "Description", type: "textarea" },
-    { name: "link", label: "Registration Link", type: "text" },
-    { name: "poster", label: "Event Poster", type: "file" },
-  ],
-  executives: [
-    { name: "name", label: "Executive Name", type: "text" },
-    { name: "role", label: "Role / Position", type: "text" },
-    { name: "officeHours", label: "Office Hours", type: "textarea" },
-    { name: "email", label: "Email", type: "text" },
-    { name: "photo", label: "Photo", type: "file" },
-  ],
-  booking: [
-    { name: "roomName", label: "Room / Space Name", type: "text" },
-    { name: "capacity", label: "Capacity", type: "text" },
-    { name: "fee", label: "Fee", type: "text" },
-    { name: "bookingLink", label: "Booking Link", type: "text" },
-    { name: "notes", label: "Additional Notes", type: "textarea" },
-  ],
-  grants: [
-    { name: "grantName", label: "Grant Name", type: "text" },
-    { name: "amount", label: "Amount", type: "text" },
-    { name: "deadline", label: "Deadline", type: "text", placeholder: "YYYY-MM-DD" },
-    { name: "description", label: "Description", type: "textarea" },
-    { name: "applyLink", label: "Application Link", type: "text" },
-  ],
-  bluecard: [
-    { name: "businessName", label: "Business Name", type: "text" },
-    { name: "discount", label: "Discount / Offer", type: "text" },
-    { name: "address", label: "Address", type: "text" },
-    { name: "website", label: "Website", type: "text" },
-    { name: "logo", label: "Business Logo", type: "file" },
-  ],
-};
-
-const PENDING: PendingSubmission[] = [
-  {
-    id: "1",
-    section: "clubs",
-    submittedBy: "alice@sus.ubc.ca",
-    data: { clubName: "Robotics Club", description: "We build robots." },
-  },
-  {
-    id: "2",
-    section: "events",
-    submittedBy: "bob@sus.ubc.ca",
-    data: { title: "Spring AGM", date: "2025-03-15", location: "NEST 206" },
-  },
-];
-
-/* ─────────────────── APP ─────────────────── */
-
-export default function App() {
-  const [page, setPage] = useState<Page>("login");
-  const [email, setEmail] = useState<string>("");
-  const [emailError, setEmailError] = useState<string>("");
-  const [section, setSection] = useState<SectionKey | "">("");
-  const [formValues, setFormValues] = useState<Record<string, unknown>>({});
-  const [toast, setToast] = useState<Toast | null>(null);
-  const [pending, setPending] = useState<PendingSubmission[]>(PENDING);
-  const [rejectNote, setRejectNote] = useState<Record<string, string>>({});
-
-  const showToast = (type: Toast["type"], msg: string) => {
-    setToast({ type, msg });
-    setTimeout(() => setToast(null), 3500);
+  // Fetch all pending submissions
+  const fetchPending = async () => {
+    const snapshot = await getDocs(collection(db, "pending_submissions"));
+    const subs: PendingSubmission[] = snapshot.docs.map((d) => ({
+      id: d.id,
+      ...(d.data() as Omit<PendingSubmission, "id">),
+    }));
+    setPending(subs);
   };
 
-  const handleLogin = () => {
-    if (!email.endsWith("@sus.ubc.ca")) {
-      setEmailError("Must use a @sus.ubc.ca email address.");
-      return;
+  useEffect(() => {
+    fetchPending();
+  }, []);
+
+  // Approve: move to permanent collection
+  const handleApprove = async (sub: PendingSubmission) => {
+    const targetCollection = sub.category + "s"; // clubs / pantries / events
+    try {
+      // Add to permanent collection
+      await addDoc(collection(db, targetCollection), {
+        title: sub.title,
+        description: sub.description,
+        eventDate: sub.eventDate || null,
+        link: sub.link || null,
+        images: sub.images || [],
+        createdAt: sub.createdAt,
+      });
+      // Delete from pending
+      await deleteDoc(doc(db, "pending_submissions", sub.id));
+      fetchPending();
+    } catch (err) {
+      console.error("Error approving submission:", err);
+      alert("Failed to approve submission");
     }
-    setEmailError("");
-    setPage("dashboard");
   };
 
-  const handleFieldChange = (name: string, value: unknown) => {
-    setFormValues((prev) => ({ ...prev, [name]: value }));
+  // Reject: just delete
+  const handleReject = async (sub: PendingSubmission) => {
+    if (!confirm("Are you sure you want to reject this submission?")) return;
+    await deleteDoc(doc(db, "pending_submissions", sub.id));
+    fetchPending();
   };
-
-  const handleSubmit = () => {
-    showToast("success", "Submission sent for review!");
-    setFormValues({});
-    setSection("");
-  };
-
-  const handleApprove = (id: string) => {
-    setPending((p) => p.filter((s) => s.id !== id));
-    showToast("success", "Submission approved.");
-  };
-
-  const handleReject = (id: string) => {
-    setPending((p) => p.filter((s) => s.id !== id));
-    showToast("error", "Submission rejected.");
-  };
-
-  const fields = section ? FORM_FIELDS[section as SectionKey] : [];
-  const sectionLabel = SECTIONS.find((s) => s.value === section)?.label;
-
-  /* ───────────── JSX (UNCHANGED LOGIC) ───────────── */
 
   return (
-    <div style={styles.root}>
-      <style>{css}</style>
+    <div style={{ padding: 24, fontFamily: "system-ui" }}>
+      <h1>Pending Submissions</h1>
 
-      {toast && (
+      {pending.length === 0 && <p>No pending submissions.</p>}
+
+      {pending.map((sub) => (
         <div
+          key={sub.id}
           style={{
-            ...styles.toast,
-            background: toast.type === "success" ? "#1a6b3c" : "#7a1a1a",
+            border: "1px solid #ccc",
+            padding: 12,
+            marginBottom: 12,
+            borderRadius: 6,
           }}
-          className="toast-in"
         >
-          {toast.type === "success" ? "✓" : "✕"} {toast.msg}
+          <h3>{sub.title}</h3>
+          <p>{sub.description}</p>
+          <p>
+            <strong>Category:</strong> {sub.category}
+          </p>
+          {sub.eventDate && <p>Date: {sub.eventDate}</p>}
+          {sub.link && (
+            <p>
+              Link:{" "}
+              <a href={sub.link} target="_blank" rel="noreferrer">
+                {sub.link}
+              </a>
+            </p>
+          )}
+          {sub.images?.map((url, i) => (
+            <img
+              key={i}
+              src={url}
+              alt={sub.title}
+              style={{
+                width: 100,
+                height: 100,
+                objectFit: "cover",
+                marginRight: 4,
+                marginBottom: 4,
+              }}
+            />
+          ))}
+
+          <div style={{ marginTop: 8 }}>
+            <button
+              onClick={() => handleApprove(sub)}
+              style={{ marginRight: 8, background: "green", color: "white" }}
+            >
+              Approve
+            </button>
+            <button
+              onClick={() => handleReject(sub)}
+              style={{ background: "red", color: "white" }}
+            >
+              Reject
+            </button>
+          </div>
         </div>
-      )}
-
-      {/* LOGIN / DASHBOARD / REVIEW JSX */}
-      {/* 🔽 Everything below this line is identical to your original JSX */}
-      {/* (No TS changes needed) */}
-
-      {/* ⬇️ KEEP YOUR EXISTING JSX HERE ⬇️ */}
+      ))}
     </div>
   );
 }
-
-/* ─────────────────── STYLES & CSS ─────────────────── */
-/* (Unchanged from your original file — safe in TSX) */
-
-const C = {
-  bg: "#0d0f14",
-  surface: "#161923",
-  border: "#252c3d",
-  accent: "#2f6feb",
-  text: "#e8eaf0",
-  muted: "#6b7694",
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  root: {
-    fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
-    background: C.bg,
-    minHeight: "100vh",
-    color: C.text,
-  },
-  toast: {
-    position: "fixed",
-    top: 20,
-    right: 20,
-    padding: "0.75rem 1.25rem",
-    borderRadius: 8,
-    color: "#fff",
-    zIndex: 999,
-  },
-};
-
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
-  * { box-sizing: border-box; }
-`;
