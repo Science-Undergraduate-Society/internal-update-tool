@@ -49,6 +49,14 @@ export default function PendingSubmissionsPage() {
       }
 
       await deleteDoc(doc(db, "submissions", sub.id));
+
+      // Trigger ISR revalidation on www-v2 if this was an events submission
+      await fetch(`${process.env.NEXT_PUBLIC_WWW_URL}/api/revalidate`, {
+        method: "POST",
+        headers: { "x-revalidate-secret": process.env.NEXT_PUBLIC_REVALIDATE_SECRET ?? "" },
+      }).catch(() => {}); 
+      
+      
       fetchPending();
     } catch (err) {
       console.error("Error approving submission:", err);
