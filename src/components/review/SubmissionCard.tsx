@@ -1,5 +1,5 @@
 "use client";
-import { Submission } from "@/types/submissions";
+import { Submission } from "../../types/submissions";
 
 interface Props {
   submission: Submission;

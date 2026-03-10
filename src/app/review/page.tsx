@@ -7,54 +7,46 @@ import {
   deleteDoc,
   doc,
   addDoc,
+  setDoc,
+  query,
+  where,
 } from "firebase/firestore";
-import { db } from "../../lib/firebase"; // adjust path
-
-type Category = "club" | "pantry" | "events";
+import { db } from "../../lib/firebase";
 
 interface PendingSubmission {
   id: string;
-  title: string;
-  description: string;
-  category: Category;
-  eventDate?: string;
-  link?: string;
-  images?: string[];
-  createdAt: any;
+  section: string;
+  data: Record<string, string>;
+  linkedDocId?: string;
+  linkedCollection?: string;
 }
 
 export default function PendingSubmissionsPage() {
   const [pending, setPending] = useState<PendingSubmission[]>([]);
 
-  // Fetch all pending submissions
   const fetchPending = async () => {
-    const snapshot = await getDocs(collection(db, "pending_submissions"));
-    const subs: PendingSubmission[] = snapshot.docs.map((d) => ({
-      id: d.id,
-      ...(d.data() as Omit<PendingSubmission, "id">),
-    }));
-    setPending(subs);
+    const q = query(collection(db, "submissions"), where("status", "==", "pending"));
+    const snapshot = await getDocs(q);
+    setPending(snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<PendingSubmission, "id">) })));
   };
 
   useEffect(() => {
     fetchPending();
   }, []);
 
-  // Approve: move to permanent collection
   const handleApprove = async (sub: PendingSubmission) => {
-    const targetCollection = sub.category + "s"; // clubs / pantries / events
     try {
-      // Add to permanent collection
-      await addDoc(collection(db, targetCollection), {
-        title: sub.title,
-        description: sub.description,
-        eventDate: sub.eventDate || null,
-        link: sub.link || null,
-        images: sub.images || [],
-        createdAt: sub.createdAt,
-      });
-      // Delete from pending
-      await deleteDoc(doc(db, "pending_submissions", sub.id));
+      const payload = { ...sub.data };
+
+      if (sub.linkedDocId && sub.linkedCollection) {
+        // Edit of existing doc — overwrite in place
+        await setDoc(doc(db, sub.linkedCollection, sub.linkedDocId), payload);
+      } else {
+        // New submission — add to collection
+        await addDoc(collection(db, sub.section), payload);
+      }
+
+      await deleteDoc(doc(db, "submissions", sub.id));
       fetchPending();
     } catch (err) {
       console.error("Error approving submission:", err);
@@ -62,10 +54,9 @@ export default function PendingSubmissionsPage() {
     }
   };
 
-  // Reject: just delete
   const handleReject = async (sub: PendingSubmission) => {
     if (!confirm("Are you sure you want to reject this submission?")) return;
-    await deleteDoc(doc(db, "pending_submissions", sub.id));
+    await deleteDoc(doc(db, "submissions", sub.id));
     fetchPending();
   };
 
@@ -78,40 +69,25 @@ export default function PendingSubmissionsPage() {
       {pending.map((sub) => (
         <div
           key={sub.id}
-          style={{
-            border: "1px solid #ccc",
-            padding: 12,
-            marginBottom: 12,
-            borderRadius: 6,
-          }}
+          style={{ border: "1px solid #ccc", padding: 12, marginBottom: 12, borderRadius: 6 }}
         >
-          <h3>{sub.title}</h3>
-          <p>{sub.description}</p>
-          <p>
-            <strong>Category:</strong> {sub.category}
+          <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 4 }}>
+            <strong>Section:</strong> {sub.section}
+            {sub.linkedDocId && (
+              <span style={{ marginLeft: 8, background: "#fef3c7", color: "#92400e", padding: "1px 6px", borderRadius: 4, fontSize: "0.75rem" }}>
+                ✏️ Edit of existing item
+              </span>
+            )}
           </p>
-          {sub.eventDate && <p>Date: {sub.eventDate}</p>}
-          {sub.link && (
-            <p>
-              Link:{" "}
-              <a href={sub.link} target="_blank" rel="noreferrer">
-                {sub.link}
-              </a>
+          {Object.entries(sub.data).map(([key, value]) => (
+            <p key={key}>
+              <strong>{key}:</strong>{" "}
+              {value?.startsWith?.("http") ? (
+                <a href={value} target="_blank" rel="noreferrer">{value}</a>
+              ) : (
+                value
+              )}
             </p>
-          )}
-          {sub.images?.map((url, i) => (
-            <img
-              key={i}
-              src={url}
-              alt={sub.title}
-              style={{
-                width: 100,
-                height: 100,
-                objectFit: "cover",
-                marginRight: 4,
-                marginBottom: 4,
-              }}
-            />
           ))}
 
           <div style={{ marginTop: 8 }}>

@@ -1,53 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   collection,
   getDocs,
   deleteDoc,
   doc,
-  updateDoc,
 } from "firebase/firestore";
-import { db } from "../../lib/firebase"; 
+import { db } from "../../lib/firebase";
+import { SectionType } from "../../types/submissions";
 
-type Category = "clubs" | "pantry" | "events";
+type Category = SectionType | "pantry";
 
 interface Submission {
   id: string;
   title: string;
   description: string;
-  eventDate?: string;
+  date?: string;
+  location?: string;
   link?: string;
-  images?: string[];
+  poster?: string;
 }
 
+const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events"];
+const CATEGORIES: Category[] = ["clubs", "pantry", "events"];
+
 export default function AdminDashboard() {
-  const [data, setData] = useState<Record<Category, Submission[]>>({
-    clubs: [],
-    pantry: [],
-    events: [],
-  });
-  const [selectedCategory, setSelectedCategory] = useState<Category>("clubs");
+  const [data, setData] = useState<Record<Category, Submission[]>>(
+    Object.fromEntries(CATEGORIES.map((c) => [c, []])) as Record<Category, Submission[]>
+  );
+  const [selectedCategory, setSelectedCategory] = useState<Category>("events");
+  const router = useRouter();
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingTitle, setEditingTitle] = useState("");
-  const [editingDesc, setEditingDesc] = useState("");
-
-  // Fetch all collections
   const fetchData = async () => {
-    const categories: Category[] = ["clubs", "pantry", "events"];
-    const newData: Record<Category, Submission[]> = {
-      clubs: [],
-      pantry: [],
-      events: [],
-    };
+    const newData = Object.fromEntries(CATEGORIES.map((c) => [c, []])) as Record<Category, Submission[]>;
 
-    for (const cat of categories) {
+    // All categories read directly from their own top-level collection
+    for (const cat of DIRECT_COLLECTIONS) {
       const snapshot = await getDocs(collection(db, cat));
-      newData[cat] = snapshot.docs.map((d) => ({
-        id: d.id,
-        ...(d.data() as Omit<Submission, "id">),
-      }));
+      newData[cat] = snapshot.docs.map((d) => {
+        const raw = d.data() as Record<string, string>;
+        return {
+          id: d.id,
+          title: raw.title ?? "",
+          description: raw.description ?? "",
+          date: raw.date ?? "",
+          location: raw.location ?? "",
+          link: raw.link ?? "",
+          poster: raw.poster ?? "",
+        };
+      });
     }
     setData(newData);
   };
@@ -62,21 +65,17 @@ export default function AdminDashboard() {
     fetchData();
   };
 
-  const handleEdit = (submission: Submission) => {
-    setEditingId(submission.id);
-    setEditingTitle(submission.title);
-    setEditingDesc(submission.description);
-  };
-
-  const handleSave = async () => {
-    if (!editingId) return;
-    const docRef = doc(db, selectedCategory, editingId);
-    await updateDoc(docRef, {
-      title: editingTitle,
-      description: editingDesc,
+  const handleEdit = (item: Submission) => {
+    const params = new URLSearchParams({
+      editId: item.id,
+      collection: selectedCategory,
+      title: item.title ?? "",
+      description: item.description ?? "",
+      date: item.date ?? "",
+      location: item.location ?? "",
+      link: item.link ?? "",
     });
-    setEditingId(null);
-    fetchData();
+    router.push(`/submission?${params.toString()}`);
   };
 
   return (
@@ -91,9 +90,9 @@ export default function AdminDashboard() {
           onChange={(e) => setSelectedCategory(e.target.value as Category)}
           style={{ display: "block", margin: "12px 0", padding: 6 }}
         >
-          <option value="clubs">Clubs</option>
-          <option value="pantry">Pantry</option>
-          <option value="events">Events</option>
+          {CATEGORIES.map((cat) => (
+            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+          ))}
         </select>
       </label>
 
@@ -108,55 +107,33 @@ export default function AdminDashboard() {
             borderRadius: 6,
           }}
         >
-          {editingId === item.id ? (
-            <>
-              <input
-                value={editingTitle}
-                onChange={(e) => setEditingTitle(e.target.value)}
-                style={{ display: "block", marginBottom: 8, width: "100%" }}
-              />
-              <textarea
-                value={editingDesc}
-                onChange={(e) => setEditingDesc(e.target.value)}
-                rows={3}
-                style={{ display: "block", marginBottom: 8, width: "100%" }}
-              />
-              <button onClick={handleSave} style={{ marginRight: 8 }}>
-                Save
-              </button>
-              <button onClick={() => setEditingId(null)}>Cancel</button>
-            </>
-          ) : (
-            <>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-              {item.eventDate && <p>Date: {item.eventDate}</p>}
-              {item.link && (
-                <p>
-                  Link:{" "}
-                  <a href={item.link} target="_blank" rel="noreferrer">
-                    {item.link}
-                  </a>
-                </p>
-              )}
-              {item.images?.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt={item.title}
-                  style={{ width: 100, height: 100, objectFit: "cover", marginRight: 4 }}
-                />
-              ))}
-              <div style={{ marginTop: 8 }}>
-                <button onClick={() => handleEdit(item)} style={{ marginRight: 8 }}>
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(selectedCategory, item.id)}>
-                  Delete
-                </button>
-              </div>
-            </>
+          <h3>{item.title}</h3>
+          <p>{item.description}</p>
+          {item.date && <p>Date: {item.date}</p>}
+          {item.location && <p>Location: {item.location}</p>}
+          {item.link && (
+            <p>
+              Link:{" "}
+              <a href={item.link} target="_blank" rel="noreferrer">
+                {item.link}
+              </a>
+            </p>
           )}
+          {item.poster && (
+            <img
+              src={item.poster}
+              alt={item.title}
+              style={{ width: 100, height: 100, objectFit: "cover", marginRight: 4 }}
+            />
+          )}
+          <div style={{ marginTop: 8 }}>
+            <button onClick={() => handleEdit(item)} style={{ marginRight: 8 }}>
+              Edit
+            </button>
+            <button onClick={() => handleDelete(selectedCategory, item.id)}>
+              Delete
+            </button>
+          </div>
         </div>
       ))}
 

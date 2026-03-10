@@ -1,5 +1,5 @@
 "use client";
-import { SectionType } from "@/types/submissions";
+import { SectionType } from "../../types/submissions";
 
 const SECTIONS: { value: SectionType; label: string }[] = [
   { value: "clubs", label: "Clubs" },
