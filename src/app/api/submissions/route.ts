@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createSubmission, getPendingSubmissions } from "@/lib/firestore";
+import { createSubmission, getPendingSubmissions } from "../../../lib/firestore";
 
 export async function GET() {
   try {

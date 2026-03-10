@@ -9,7 +9,7 @@ import {
   where,
   serverTimestamp,
 } from "firebase/firestore";
-import { Submission } from "@/types/submissions";
+import { Submission } from "../types/submissions";
 
 export async function createSubmission(submission: Omit<Submission, "id" | "submittedAt" | "status">) {
   return await addDoc(collection(db, "submissions"), {
