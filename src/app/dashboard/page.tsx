@@ -23,18 +23,18 @@ interface Submission {
   poster?: string;
 }
 
-const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events"];
-const CATEGORIES: Category[] = ["clubs", "pantry", "events"];
+const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events", "tutors"];
+const CATEGORIES: Category[] = ["clubs", "pantry", "events", "tutors"];
 
 export default function AdminDashboard() {
   const [data, setData] = useState<Record<Category, Submission[]>>(
-    Object.fromEntries(CATEGORIES.map((c) => [c, []])) as Record<Category, Submission[]>
+    Object.fromEntries(CATEGORIES.map((c) => [c, []])) as unknown as Record<Category, Submission[]>
   );
   const [selectedCategory, setSelectedCategory] = useState<Category>("events");
   const router = useRouter();
 
   const fetchData = async () => {
-    const newData = Object.fromEntries(CATEGORIES.map((c) => [c, []])) as Record<Category, Submission[]>;
+    const newData = Object.fromEntries(CATEGORIES.map((c) => [c, []])) as unknown as Record<Category, Submission[]>;
 
     // All categories read directly from their own top-level collection
     for (const cat of DIRECT_COLLECTIONS) {
@@ -43,8 +43,8 @@ export default function AdminDashboard() {
         const raw = d.data() as Record<string, string>;
         return {
           id: d.id,
-          title: raw.title ?? "",
-          description: raw.description ?? "",
+          title: raw.title ?? raw.name ?? "",
+          description: raw.description ?? raw.bio ?? "",
           date: raw.date ?? "",
           location: raw.location ?? "",
           link: raw.link ?? "",
