@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import {
   collection,
   getDocs,
-  deleteDoc,
+  addDoc,
   doc,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { SectionType } from "../../types/submissions";
@@ -31,6 +33,7 @@ export default function AdminDashboard() {
     Object.fromEntries(CATEGORIES.map((c) => [c, []])) as unknown as Record<Category, Submission[]>
   );
   const [selectedCategory, setSelectedCategory] = useState<Category>("events");
+  const [pendingDeletions, setPendingDeletions] = useState<Set<string>>(new Set());
   const router = useRouter();
 
   const fetchData = async () => {
@@ -52,6 +55,15 @@ export default function AdminDashboard() {
         };
       });
     }
+    // Fetch pending deletion requests to flag items
+    const deletionQuery = query(
+      collection(db, "submissions"),
+      where("action", "==", "delete"),
+      where("status", "==", "pending")
+    );
+    const deletionSnapshot = await getDocs(deletionQuery);
+    setPendingDeletions(new Set(deletionSnapshot.docs.map((d) => d.data().linkedDocId as string)));
+
     setData(newData);
   };
 
@@ -59,10 +71,17 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
-  const handleDelete = async (category: Category, id: string) => {
-    if (!confirm("Are you sure you want to delete this item?")) return;
-    await deleteDoc(doc(db, category, id));
-    fetchData();
+  const handleDelete = async (category: Category, item: Submission) => {
+    if (!confirm("Submit this deletion for review?")) return;
+    await addDoc(collection(db, "submissions"), {
+      section: category,
+      status: "pending",
+      action: "delete",
+      linkedDocId: item.id,
+      linkedCollection: category,
+      data: { title: item.title, description: item.description },
+    });
+    alert("Deletion request submitted for review.");
   };
 
   const handleEdit = (item: Submission) => {
@@ -101,12 +120,17 @@ export default function AdminDashboard() {
         <div
           key={item.id}
           style={{
-            border: "1px solid #ccc",
+            border: `1px solid ${pendingDeletions.has(item.id) ? "#fca5a5" : "#ccc"}`,
             padding: 12,
             marginBottom: 12,
             borderRadius: 6,
           }}
         >
+          {pendingDeletions.has(item.id) && (
+            <div style={{ background: "#fee2e2", color: "#991b1b", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
+              🗑️ Deletion Pending Review
+            </div>
+          )}
           <h3>{item.title}</h3>
           <p>{item.description}</p>
           {item.date && <p>Date: {item.date}</p>}
@@ -130,7 +154,10 @@ export default function AdminDashboard() {
             <button onClick={() => handleEdit(item)} style={{ marginRight: 8 }}>
               Edit
             </button>
-            <button onClick={() => handleDelete(selectedCategory, item.id)}>
+            <button
+              onClick={() => handleDelete(selectedCategory, item)}
+              disabled={pendingDeletions.has(item.id)}
+            >
               Delete
             </button>
           </div>

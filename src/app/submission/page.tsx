@@ -4,6 +4,7 @@ import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import CourseSelect from "../../components/CourseSelect";
 
 type Category = "clubs" | "pantry" | "events" | "tutors";
 
@@ -20,7 +21,9 @@ function SubmissionForm() {
   const [eventDate, setEventDate] = useState(searchParams.get("date") ?? "");
   const [location, setLocation] = useState(searchParams.get("location") ?? "");
   const [link, setLink] = useState(searchParams.get("link") ?? "");
-  const [courses, setCourses] = useState(searchParams.get("courses") ?? "");
+  const [courses, setCourses] = useState<string[]>(
+    searchParams.get("courses") ? searchParams.get("courses")!.split(",").map((c) => c.trim()) : []
+  );
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -37,7 +40,7 @@ function SubmissionForm() {
         ? {
             name: title,
             bio: description,
-            courses: courses.split(",").map((c) => c.trim()).filter(Boolean),
+            courses,
             link: link || null,
             image: null, // image upload not yet implemented
           }
@@ -118,13 +121,7 @@ function SubmissionForm() {
             </div>
             <div>
               <label>Courses Taught</label>
-              <input
-                type="text"
-                placeholder="e.g. BIOL 200, CHEM 121"
-                value={courses}
-                onChange={(e) => setCourses(e.target.value)}
-              />
-              <small style={{ color: "var(--text-muted)" }}>Comma-separated list of course codes</small>
+              <CourseSelect selected={courses} onChange={setCourses} />
             </div>
             <div>
               <label>Koalender Link</label>

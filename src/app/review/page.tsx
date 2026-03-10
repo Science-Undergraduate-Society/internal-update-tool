@@ -16,6 +16,7 @@ import { db } from "../../lib/firebase";
 interface PendingSubmission {
   id: string;
   section: string;
+  action?: "delete";
   data: Record<string, string>;
   linkedDocId?: string;
   linkedCollection?: string;
@@ -36,14 +37,15 @@ export default function PendingSubmissionsPage() {
 
   const handleApprove = async (sub: PendingSubmission) => {
     try {
-      const payload = { ...sub.data };
-
-      if (sub.linkedDocId && sub.linkedCollection) {
+      if (sub.action === "delete" && sub.linkedDocId && sub.linkedCollection) {
+        // Deletion request — remove the original document
+        await deleteDoc(doc(db, sub.linkedCollection, sub.linkedDocId));
+      } else if (sub.linkedDocId && sub.linkedCollection) {
         // Edit of existing doc — overwrite in place
-        await setDoc(doc(db, sub.linkedCollection, sub.linkedDocId), payload);
+        await setDoc(doc(db, sub.linkedCollection, sub.linkedDocId), { ...sub.data });
       } else {
         // New submission — add to collection
-        await addDoc(collection(db, sub.section), payload);
+        await addDoc(collection(db, sub.section), { ...sub.data });
       }
 
       await deleteDoc(doc(db, "submissions", sub.id));
@@ -69,11 +71,16 @@ export default function PendingSubmissionsPage() {
       {pending.map((sub) => (
         <div
           key={sub.id}
-          style={{ border: "1px solid #ccc", padding: 12, marginBottom: 12, borderRadius: 6 }}
+          style={{ border: `1px solid ${sub.action === "delete" ? "#fca5a5" : "#ccc"}`, padding: 12, marginBottom: 12, borderRadius: 6 }}
         >
+          {sub.action === "delete" && (
+            <div style={{ background: "#fee2e2", color: "#991b1b", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
+              🗑️ Deletion Request
+            </div>
+          )}
           <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 4 }}>
             <strong>Section:</strong> {sub.section}
-            {sub.linkedDocId && (
+            {sub.linkedDocId && sub.action !== "delete" && (
               <span style={{ marginLeft: 8, background: "#fef3c7", color: "#92400e", padding: "1px 6px", borderRadius: 4, fontSize: "0.75rem" }}>
                 ✏️ Edit of existing item
               </span>
