@@ -9,13 +9,11 @@ export const authOptions: NextAuthOptions = {
       name: "Verification Code",
       credentials: {
         email: { label: "Email", type: "email" },
-        code: { label: "Verification Code", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials) return null;
+        // Email ownership already verified by Firebase Email Link
         if (!credentials.email.endsWith("@sus.ubc.ca")) return null;
-        // TODO: re-enable verification code check before production
-        // if (credentials.code !== process.env.VERIFICATION_CODE) return null;
         return {
           id: credentials.email,
           email: credentials.email,
