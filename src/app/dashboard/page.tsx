@@ -34,6 +34,7 @@ export default function AdminDashboard() {
   );
   const [selectedCategory, setSelectedCategory] = useState<Category>("events");
   const [pendingDeletions, setPendingDeletions] = useState<Set<string>>(new Set());
+  const [pendingEdits, setPendingEdits] = useState<Set<string>>(new Set());
   const router = useRouter();
 
   const fetchData = async () => {
@@ -63,6 +64,18 @@ export default function AdminDashboard() {
     );
     const deletionSnapshot = await getDocs(deletionQuery);
     setPendingDeletions(new Set(deletionSnapshot.docs.map((d) => d.data().linkedDocId as string)));
+
+    // Fetch pending edit requests to flag items
+    const editQuery = query(
+      collection(db, "submissions"),
+      where("status", "==", "pending")
+    );
+    const editSnapshot = await getDocs(editQuery);
+    setPendingEdits(new Set(
+      editSnapshot.docs
+        .filter((d) => d.data().linkedDocId && !d.data().action)
+        .map((d) => d.data().linkedDocId as string)
+    ));
 
     setData(newData);
   };
@@ -120,7 +133,7 @@ export default function AdminDashboard() {
         <div
           key={item.id}
           style={{
-            border: `1px solid ${pendingDeletions.has(item.id) ? "#fca5a5" : "#ccc"}`,
+            border: `1px solid ${pendingDeletions.has(item.id) ? "#fca5a5" : pendingEdits.has(item.id) ? "#fde68a" : "#ccc"}`,
             padding: 12,
             marginBottom: 12,
             borderRadius: 6,
@@ -129,6 +142,11 @@ export default function AdminDashboard() {
           {pendingDeletions.has(item.id) && (
             <div style={{ background: "#fee2e2", color: "#991b1b", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
               🗑️ Deletion Pending Review
+            </div>
+          )}
+          {pendingEdits.has(item.id) && (
+            <div style={{ background: "#fef3c7", color: "#92400e", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
+              ✏️ Edit Pending Review
             </div>
           )}
           <h3>{item.title}</h3>

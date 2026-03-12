@@ -79,20 +79,25 @@ export default function PendingSubmissionsPage() {
       {pending.map((sub) => (
         <div
           key={sub.id}
-          style={{ border: `1px solid ${sub.action === "delete" ? "#fca5a5" : "#ccc"}`, padding: 12, marginBottom: 12, borderRadius: 6 }}
+          style={{ border: `1px solid ${sub.action === "delete" ? "#fca5a5" : sub.linkedDocId ? "#fde68a" : "#86efac"}`, padding: 12, marginBottom: 12, borderRadius: 6 }}
         >
           {sub.action === "delete" && (
             <div style={{ background: "#fee2e2", color: "#991b1b", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
               🗑️ Deletion Request
             </div>
           )}
+          {!sub.action && sub.linkedDocId && (
+            <div style={{ background: "#fef3c7", color: "#92400e", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
+              ✏️ Edit Request
+            </div>
+          )}
+          {!sub.action && !sub.linkedDocId && (
+            <div style={{ background: "#dcfce7", color: "#166534", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
+              ➕ New Submission
+            </div>
+          )}
           <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 4 }}>
             <strong>Section:</strong> {sub.section}
-            {sub.linkedDocId && sub.action !== "delete" && (
-              <span style={{ marginLeft: 8, background: "#fef3c7", color: "#92400e", padding: "1px 6px", borderRadius: 4, fontSize: "0.75rem" }}>
-                ✏️ Edit of existing item
-              </span>
-            )}
           </p>
           {Object.entries(sub.data).map(([key, value]) => (
             <p key={key}>
