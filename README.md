@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SUS Internal Update Tool
 
-## Getting Started
+A web tool for SUS staff to submit and review updates to the public SUS website.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Signing In
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Go to the tool and enter your **@sus.ubc.ca email address**.
+2. You will receive a **sign-in link** from Firebase (sent from `noreply@internal-updates-f2609.firebaseapp.com`). Check your inbox — it may land in spam the first time.
+3. Click the link in the email. You will be signed in automatically and redirected to the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- add noreply@internal-updates-f2609.firebaseapp.com to whitelist to avoid looking through spam next time
+> The link expires after a short time. If it has expired, go back to the login page and request a new one.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## Submitting a New Update
 
-To learn more about Next.js, take a look at the following resources:
+1. Navigate to the **Submission** page from the navbar.
+2. Select a **category** from the dropdown:
+   - **Events** — upcoming SUS events
+   - **Clubs** — sponsored science clubs
+   - **Tutors** — SUS tutors and the courses they teach
+   - **Pantry** — pantry-related updates
+3. Fill in the relevant fields and click **Submit**.
+4. Your submission is sent to the review queue. You will see a confirmation screen once it is submitted.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+> Submissions do not appear on the public website immediately — they must be reviewed and approved first.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Editing or Deleting an Existing Item
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Go to the **Dashboard** page.
+2. Select a category using the dropdown to browse current live items.
+3. To **edit** an item, click the **Edit** button. You will be taken to the Submission page with the fields pre-filled. Make your changes and click **Submit for Review**. The existing item stays live until the edit is approved.
+4. To **delete** an item, click the **Delete** button. A deletion request will be sent to the review queue. The item stays live until the deletion is approved.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+> Items with a pending edit show a yellow **✏️ Edit Pending Review** banner.
+> Items with a pending deletion show a red **🗑️ Deletion Pending Review** banner and the Delete button is disabled until it is resolved.
+
+---
+
+## Review Page (VP Communications, AVP Communications, Web Developer only)
+
+The **Review** tab is only visible to accounts with an approved role. If you do not see it, your account does not have review access.
+
+1. Navigate to the **Review** page.
+2. Each pending submission is shown with a colour-coded banner:
+   - 🟢 **New Submission** — a brand new item to be added
+   - 🟡 **Edit Request** — a proposed change to an existing item
+   - 🔴 **Deletion Request** — a request to remove an existing item
+3. Click **Approve** to publish the change to the live website. The public site will update automatically.
+4. Click **Reject** to discard the submission. The existing live content is left unchanged.
+
+---
+
+## Notes
+
+- All changes go through review before appearing on the public website.
+- If you have any issues signing in or using the tool, contact **webdeveloper@sus.ubc.ca** or webdev team on slack.
