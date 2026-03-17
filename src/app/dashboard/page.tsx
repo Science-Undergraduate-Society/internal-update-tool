@@ -150,7 +150,7 @@ export default function AdminDashboard() {
             <img src={item.image} alt={item.title} className={styles.itemThumbnail} />
           )}
           <div className="actionRow">
-            <button onClick={() => handleEdit(item)}>Edit</button>
+            <button onClick={() => handleEdit(item)} disabled={pendingDeletions.has(item.id)}>Edit</button>
             <button
               onClick={() => handleDelete(selectedCategory, item)}
               disabled={pendingDeletions.has(item.id)}
