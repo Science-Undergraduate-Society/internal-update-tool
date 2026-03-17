@@ -1,0 +1,66 @@
+.container {
+  position: relative;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.tag {
+  background: var(--navy);
+  color: white;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tagRemoveButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tagRemoveButton:hover {
+  background: none;
+  color: white;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.dropdownEmpty {
+  padding: 10px 12px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.dropdownOption {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.dropdownOption:hover {
+  background: var(--surface);
+}

@@ -6,6 +6,7 @@ import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import CourseSelect from "../../components/CourseSelect";
 import PreviewButton from "../../components/EventPreview";
+import styles from "./submission.module.css";
 
 type Category = "clubs" | "pantry" | "events" | "tutors" | "initiatives";
 
@@ -41,42 +42,14 @@ function SubmissionForm() {
     setSubmitting(true);
     try {
       const data: Record<string, unknown> = isTutor
-        ? {
-            name: title,
-            bio: description,
-            courses,
-            link: link || null,
-            image: null, // image upload not yet implemented
-          }
+        ? { name: title, bio: description, courses, link: link || null, image: null }
         : isEvent
-        ? {
-            title,
-            description,
-            date: eventDate || null,
-            time: eventTime || null,
-            location: location || null,
-            link: link || null,
-            image: image || null,
-          }
+        ? { title, description, date: eventDate || null, time: eventTime || null, location: location || null, link: link || null, image: image || null }
         : isInitiative
-        ? {
-            title,
-            description,
-            link: link || null,
-            image: image || null,
-          }
-        : {
-            title,
-            description,
-            link: link || null,
-          };
+        ? { title, description, link: link || null, image: image || null }
+        : { title, description, link: link || null };
 
-      const submissionData: Record<string, unknown> = {
-        section: category,
-        status: "pending",
-        data,
-      };
-
+      const submissionData: Record<string, unknown> = { section: category, status: "pending", data };
       if (isEdit) {
         submissionData.linkedDocId = editId;
         submissionData.linkedCollection = editCollection;
@@ -94,7 +67,7 @@ function SubmissionForm() {
 
   if (submitted) {
     return (
-      <div style={{ maxWidth: 600, padding: 24 }}>
+      <div className={styles.formContainer}>
         <h1>Submitted!</h1>
         <p>Your {isEdit ? "edit" : "submission"} has been sent for review.</p>
         <a href="/submission">← Back to Submission</a>
@@ -103,22 +76,14 @@ function SubmissionForm() {
   }
 
   return (
-    <div style={{ maxWidth: 600, padding: 24 }}>
+    <div className={styles.formContainer}>
       <h1>{isEdit ? `Edit: ${title}` : "New Submission"}</h1>
-      {isEdit && (
-        <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", marginBottom: "1rem" }}>
-          Your changes will be reviewed before going live.
-        </p>
-      )}
+      {isEdit && <p className={styles.editHint}>Your changes will be reviewed before going live.</p>}
 
       <div className="stack">
         <div>
           <label>Category</label>
-          <select
-            value={category}
-            onChange={(e) => setCategory(e.target.value as Category)}
-            disabled={isEdit}
-          >
+          <select value={category} onChange={(e) => setCategory(e.target.value as Category)} disabled={isEdit}>
             <option value="">Select one</option>
             <option value="clubs">Clubs</option>
             <option value="events">Events</option>
@@ -131,100 +96,46 @@ function SubmissionForm() {
         {/* Tutor fields */}
         {isTutor && (
           <>
-            <div>
-              <label>Name</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <label>Bio</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
-            </div>
-            <div>
-              <label>Courses Taught</label>
-              <CourseSelect selected={courses} onChange={setCourses} />
-            </div>
-            <div>
-              <label>Koalender Link</label>
-              <input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
-            </div>
+            <div><label>Name</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div><label>Bio</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
+            <div><label>Courses Taught</label><CourseSelect selected={courses} onChange={setCourses} /></div>
+            <div><label>Koalender Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
           </>
         )}
 
         {/* Event fields */}
         {isEvent && (
           <>
-            <div>
-              <label>Event Title</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <label>Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
-            </div>
-            <div>
-              <label>Date</label>
-              <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
-            </div>
-            <div>
-              <label>Time</label>
-              <input type="time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} />
-            </div>
-            <div>
-              <label>Location</label>
-              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
-            </div>
-            <div>
-              <label>Event Link</label>
-              <input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
-            </div>
-            <div>
-              <label>Image URL</label>
-              <input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} />
-            </div>
+            <div><label>Event Title</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div><label>Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
+            <div><label>Date</label><input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} /></div>
+            <div><label>Time</label><input type="time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} /></div>
+            <div><label>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} /></div>
+            <div><label>Event Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
+            <div><label>Image URL</label><input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} /></div>
           </>
         )}
 
         {/* Initiative fields */}
         {isInitiative && (
           <>
-            <div>
-              <label>Title</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <label>Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
-            </div>
-            <div>
-              <label>Link</label>
-              <input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
-            </div>
-            <div>
-              <label>Image URL</label>
-              <input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} />
-            </div>
+            <div><label>Title</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div><label>Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
+            <div><label>Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
+            <div><label>Image URL</label><input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} /></div>
           </>
         )}
 
         {/* Default fields (clubs, pantry) */}
         {!isTutor && !isEvent && !isInitiative && (
           <>
-            <div>
-              <label>Title</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-            </div>
-            <div>
-              <label>Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
-            </div>
-            <div>
-              <label>Link</label>
-              <input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
-            </div>
+            <div><label>Title</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
+            <div><label>Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
+            <div><label>Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
           </>
         )}
 
-        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div className={styles.formActions}>
           <button onClick={handleSubmit} disabled={submitting}>
             {submitting ? "Submitting..." : isEdit ? "Submit for Review" : "Submit"}
           </button>

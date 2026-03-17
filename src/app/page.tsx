@@ -16,7 +16,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!email.endsWith("@sus.ubc.ca")) {
+    const testEmail = process.env.NEXT_PUBLIC_TEST_EMAIL ?? "";
+    if (!email.endsWith("@sus.ubc.ca") && email !== testEmail) {
       setError("Email must end in @sus.ubc.ca");
       return;
     }

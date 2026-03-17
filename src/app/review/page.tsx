@@ -13,6 +13,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import PreviewButton from "../../components/EventPreview";
+import styles from "./review.module.css";
 
 interface PendingSubmission {
   id: string;
@@ -32,32 +33,25 @@ export default function PendingSubmissionsPage() {
     setPending(snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<PendingSubmission, "id">) })));
   };
 
-  useEffect(() => {
-    fetchPending();
-  }, []);
+  useEffect(() => { fetchPending(); }, []);
 
   const handleApprove = async (sub: PendingSubmission) => {
     try {
       if (sub.action === "delete" && sub.linkedDocId && sub.linkedCollection) {
-        // Deletion request — remove the original document
         await deleteDoc(doc(db, sub.linkedCollection, sub.linkedDocId));
       } else if (sub.linkedDocId && sub.linkedCollection) {
-        // Edit of existing doc — overwrite in place
         await setDoc(doc(db, sub.linkedCollection, sub.linkedDocId), { ...sub.data });
       } else {
-        // New submission — add to collection
         await addDoc(collection(db, sub.section), { ...sub.data });
       }
 
       await deleteDoc(doc(db, "submissions", sub.id));
 
-      // Trigger ISR revalidation on www-v2 if this was an events submission
       await fetch(`${process.env.NEXT_PUBLIC_WWW_URL}/api/revalidate`, {
         method: "POST",
         headers: { "x-revalidate-secret": process.env.NEXT_PUBLIC_REVALIDATE_SECRET ?? "" },
-      }).catch(() => {}); 
-      
-      
+      }).catch(() => {});
+
       fetchPending();
     } catch (err) {
       console.error("Error approving submission:", err);
@@ -72,7 +66,7 @@ export default function PendingSubmissionsPage() {
   };
 
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui" }}>
+    <div className="pageContainer">
       <h1>Pending Submissions</h1>
 
       {pending.length === 0 && <p>No pending submissions.</p>}
@@ -80,26 +74,18 @@ export default function PendingSubmissionsPage() {
       {pending.map((sub) => (
         <div
           key={sub.id}
-          style={{ border: `1px solid ${sub.action === "delete" ? "#fca5a5" : sub.linkedDocId ? "#fde68a" : "#86efac"}`, padding: 12, marginBottom: 12, borderRadius: 6 }}
+          className={`itemCard ${sub.action === "delete" ? "itemCardDelete" : sub.linkedDocId ? "itemCardEdit" : ""}`}
         >
           {sub.action === "delete" && (
-            <div style={{ background: "#fee2e2", color: "#991b1b", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
-              🗑️ Deletion Request
-            </div>
+            <div className="badge badgeDelete">🗑️ Deletion Request</div>
           )}
           {!sub.action && sub.linkedDocId && (
-            <div style={{ background: "#fef3c7", color: "#92400e", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
-              ✏️ Edit Request
-            </div>
+            <div className="badge badgeEdit">✏️ Edit Request</div>
           )}
           {!sub.action && !sub.linkedDocId && (
-            <div style={{ background: "#dcfce7", color: "#166534", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
-              ➕ New Submission
-            </div>
+            <div className="badge badgeNew">➕ New Submission</div>
           )}
-          <p style={{ fontSize: "0.8rem", color: "#666", marginBottom: 4 }}>
-            <strong>Section:</strong> {sub.section}
-          </p>
+          <p className={styles.sectionLabel}><strong>Section:</strong> {sub.section}</p>
           {Object.entries(sub.data).map(([key, value]) => (
             <p key={key}>
               <strong>{key}:</strong>{" "}
@@ -111,13 +97,9 @@ export default function PendingSubmissionsPage() {
             </p>
           ))}
 
-          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <button onClick={() => handleApprove(sub)} style={{ background: "green", color: "white" }}>
-              Approve
-            </button>
-            <button onClick={() => handleReject(sub)} style={{ background: "red", color: "white" }}>
-              Reject
-            </button>
+          <div className="actionRow">
+            <button className={styles.approveButton} onClick={() => handleApprove(sub)}>Approve</button>
+            <button className={styles.rejectButton} onClick={() => handleReject(sub)}>Reject</button>
             {(sub.section === "events" || sub.section === "initiatives") && (
               <PreviewButton data={{
                 title: sub.data.title ?? "",

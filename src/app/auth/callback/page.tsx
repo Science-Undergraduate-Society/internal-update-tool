@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { signIn } from "next-auth/react";
 import { auth } from "../../../lib/firebase";
+import styles from "./callback.module.css";
 
 export default function AuthCallback() {
   const [status, setStatus] = useState<"verifying" | "error">("verifying");
@@ -19,11 +20,11 @@ export default function AuthCallback() {
 
       let email = localStorage.getItem("emailForSignIn");
       if (!email) {
-        // If opened on a different device, prompt for email
         email = window.prompt("Please enter your @sus.ubc.ca email to confirm:");
       }
 
-      if (!email || !email.endsWith("@sus.ubc.ca")) {
+      const testEmail = process.env.NEXT_PUBLIC_TEST_EMAIL ?? "";
+      if (!email || (!email.endsWith("@sus.ubc.ca") && email !== testEmail)) {
         setError("Invalid email.");
         setStatus("error");
         return;
@@ -33,7 +34,6 @@ export default function AuthCallback() {
         await signInWithEmailLink(auth, email, window.location.href);
         localStorage.removeItem("emailForSignIn");
 
-        // Create NextAuth session using the verified email
         const res = await signIn("credentials", {
           email,
           callbackUrl: "/dashboard",
@@ -57,34 +57,19 @@ export default function AuthCallback() {
   }, []);
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "var(--surface)",
-    }}>
-      <div style={{
-        background: "white",
-        border: "1px solid var(--border)",
-        borderRadius: "12px",
-        padding: "40px",
-        maxWidth: "400px",
-        width: "100%",
-        textAlign: "center",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.06)",
-      }}>
+    <div className={styles.page}>
+      <div className={styles.card}>
         {status === "verifying" && (
           <>
-            <h1 style={{ fontSize: "1.5rem" }}>Signing you in...</h1>
-            <p style={{ color: "var(--text-muted)", marginTop: "8px" }}>Please wait.</p>
+            <h1 className={styles.heading}>Signing you in...</h1>
+            <p className={styles.body}>Please wait.</p>
           </>
         )}
         {status === "error" && (
           <>
-            <h1 style={{ fontSize: "1.5rem" }}>Sign-in failed</h1>
-            <p style={{ color: "var(--error)", marginTop: "8px" }}>{error}</p>
-            <a href="/" style={{ display: "block", marginTop: "24px", color: "var(--navy)" }}>← Back to login</a>
+            <h1 className={styles.heading}>Sign-in failed</h1>
+            <p className={styles.errorMessage}>{error}</p>
+            <a href="/" className={styles.backLink}>← Back to login</a>
           </>
         )}
       </div>

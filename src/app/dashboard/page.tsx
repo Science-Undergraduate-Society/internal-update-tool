@@ -13,6 +13,7 @@ import {
 import { db } from "../../lib/firebase";
 import { SectionType } from "../../types/submissions";
 import PreviewButton from "../../components/EventPreview";
+import styles from "./dashboard.module.css";
 
 type Category = SectionType | "pantry" | "initiatives";
 
@@ -42,7 +43,6 @@ export default function AdminDashboard() {
   const fetchData = async () => {
     const newData = Object.fromEntries(CATEGORIES.map((c) => [c, []])) as unknown as Record<Category, Submission[]>;
 
-    // All categories read directly from their own top-level collection
     for (const cat of DIRECT_COLLECTIONS) {
       const snapshot = await getDocs(collection(db, cat));
       newData[cat] = snapshot.docs.map((d) => {
@@ -59,7 +59,7 @@ export default function AdminDashboard() {
         };
       });
     }
-    // Fetch pending deletion requests to flag items
+
     const deletionQuery = query(
       collection(db, "submissions"),
       where("action", "==", "delete"),
@@ -68,11 +68,7 @@ export default function AdminDashboard() {
     const deletionSnapshot = await getDocs(deletionQuery);
     setPendingDeletions(new Set(deletionSnapshot.docs.map((d) => d.data().linkedDocId as string)));
 
-    // Fetch pending edit requests to flag items
-    const editQuery = query(
-      collection(db, "submissions"),
-      where("status", "==", "pending")
-    );
+    const editQuery = query(collection(db, "submissions"), where("status", "==", "pending"));
     const editSnapshot = await getDocs(editQuery);
     setPendingEdits(new Set(
       editSnapshot.docs
@@ -83,9 +79,7 @@ export default function AdminDashboard() {
     setData(newData);
   };
 
-  useEffect(() => {
-    fetchData();
-  }, []);
+  useEffect(() => { fetchData(); }, []);
 
   const handleDelete = async (category: Category, item: Submission) => {
     if (!confirm("Submit this deletion for review?")) return;
@@ -116,16 +110,15 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div style={{ padding: 24, fontFamily: "system-ui" }}>
+    <div className="pageContainer">
       <h1>Admin Dashboard</h1>
 
-      {/* Category selector */}
       <label>
         Select Category:
         <select
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value as Category)}
-          style={{ display: "block", margin: "12px 0", padding: 6 }}
+          className={styles.categorySelect}
         >
           {CATEGORIES.map((cat) => (
             <option key={cat} value={cat}>
@@ -135,47 +128,28 @@ export default function AdminDashboard() {
         </select>
       </label>
 
-      {/* Submissions */}
       {data[selectedCategory].map((item) => (
         <div
           key={item.id}
-          style={{
-            border: `1px solid ${pendingDeletions.has(item.id) ? "#fca5a5" : pendingEdits.has(item.id) ? "#fde68a" : "#ccc"}`,
-            padding: 12,
-            marginBottom: 12,
-            borderRadius: 6,
-          }}
+          className={`itemCard ${pendingDeletions.has(item.id) ? "itemCardDelete" : pendingEdits.has(item.id) ? "itemCardEdit" : ""}`}
         >
           {pendingDeletions.has(item.id) && (
-            <div style={{ background: "#fee2e2", color: "#991b1b", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
-              🗑️ Deletion Pending Review
-            </div>
+            <div className="badge badgeDelete">🗑️ Deletion Pending Review</div>
           )}
           {pendingEdits.has(item.id) && (
-            <div style={{ background: "#fef3c7", color: "#92400e", padding: "6px 10px", borderRadius: 4, marginBottom: 8, fontWeight: 600, fontSize: "0.875rem" }}>
-              ✏️ Edit Pending Review
-            </div>
+            <div className="badge badgeEdit">✏️ Edit Pending Review</div>
           )}
           <h3>{item.title}</h3>
           <p>{item.description}</p>
           {item.date && <p>Date: {item.date}{item.time ? ` at ${item.time}` : ""}</p>}
           {item.location && <p>Location: {item.location}</p>}
           {item.link && (
-            <p>
-              Link:{" "}
-              <a href={item.link} target="_blank" rel="noreferrer">
-                {item.link}
-              </a>
-            </p>
+            <p>Link: <a href={item.link} target="_blank" rel="noreferrer">{item.link}</a></p>
           )}
           {item.image && (
-            <img
-              src={item.image}
-              alt={item.title}
-              style={{ width: 100, height: 100, objectFit: "cover", marginRight: 4 }}
-            />
+            <img src={item.image} alt={item.title} className={styles.itemThumbnail} />
           )}
-          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <div className="actionRow">
             <button onClick={() => handleEdit(item)}>Edit</button>
             <button
               onClick={() => handleDelete(selectedCategory, item)}

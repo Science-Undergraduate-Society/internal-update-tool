@@ -1,0 +1,13 @@
+.categorySelect {
+  display: block;
+  margin: 12px 0;
+  width: auto;
+}
+
+.itemThumbnail {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 4px;
+  margin-top: 8px;
+}

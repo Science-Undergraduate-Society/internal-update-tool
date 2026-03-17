@@ -117,7 +117,8 @@ button {
 }
 
 button:hover {
-  background: var(--navy-soft);
+  background: var(--navy);
+  color: white;
 }
 
 button:disabled {
@@ -137,4 +138,69 @@ button:disabled {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
+}
+
+/* ================================
+   Shared Page Layout
+   ================================ */
+.pageContainer {
+  padding: 24px;
+}
+
+/* ================================
+   Shared Status Badges
+   (used on dashboard and review)
+   ================================ */
+.badge {
+  padding: 6px 10px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.badgeDelete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.badgeEdit {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badgeNew {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* ================================
+   Shared Item Cards
+   (used on dashboard and review)
+   ================================ */
+.itemCard {
+  border: 1px solid #ccc;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.itemCardDelete {
+  border-color: #fca5a5;
+}
+
+.itemCardEdit {
+  border-color: #fde68a;
+}
+
+/* ================================
+   Shared Action Row
+   (buttons row at bottom of cards)
+   ================================ */
+.actionRow {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
 }

@@ -1,0 +1,16 @@
+.formContainer {
+  max-width: 600px;
+  padding: 24px;
+}
+
+.editHint {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.formActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}

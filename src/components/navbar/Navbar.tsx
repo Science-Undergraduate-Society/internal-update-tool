@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { REVIEW_ROLES } from "../../lib/auth";
+import styles from "./Navbar.module.css";
 
 const links = [
   { href: "/submission", label: "Submission" },
@@ -16,65 +17,32 @@ export default function Navbar() {
   const { data: session } = useSession();
   const isLogin = pathname === "/";
 
-  const role = session?.user?.email?.split("@")[0];
+  const role = session?.user?.name;
   const canReview = role ? REVIEW_ROLES.includes(role) : false;
 
   return (
-    <nav style={{
-      background: "var(--navy)",
-      padding: "0 24px",
-      display: "flex",
-      alignItems: "center",
-      gap: "8px",
-      height: "56px",
-    }}>
-      <span style={{
-        color: "white",
-        fontWeight: 700,
-        fontSize: "1rem",
-        marginRight: "24px",
-        letterSpacing: "-0.01em",
-      }}>
-        SUS Internal
-      </span>
+    <nav className={styles.nav}>
+      <span className={styles.logo}>SUS Internal</span>
 
-      {!isLogin && links.filter(({ href }) => href !== "/review" || canReview).map(({ href, label }) => {
-        const active = pathname === href;
-        return (
-          <Link
-            key={href}
-            href={href}
-            style={{
-              color: active ? "white" : "rgba(255,255,255,0.6)",
-              textDecoration: "none",
-              fontSize: "0.9rem",
-              fontWeight: active ? 600 : 400,
-              padding: "6px 12px",
-              borderRadius: "6px",
-              background: active ? "rgba(255,255,255,0.12)" : "transparent",
-              transition: "background 0.15s, color 0.15s",
-            }}
-          >
-            {label}
-          </Link>
-        );
-      })}
-
-      <span style={{ marginLeft: "auto", fontSize: "0.8rem", color: "rgba(255,255,255,0.55)" }}>
-        Having issues?{" "}
-        <a
-          href="mailto:webdeveloper@sus.ubc.ca"
-          style={{ color: "rgba(255,255,255,0.8)", textDecoration: "underline" }}
+      {!isLogin && links.filter(({ href }) => href !== "/review" || canReview).map(({ href, label }) => (
+        <Link
+          key={href}
+          href={href}
+          className={`${styles.navLink} ${pathname === href ? styles.navLinkActive : ""}`}
         >
+          {label}
+        </Link>
+      ))}
+
+      <span className={styles.helpText}>
+        Having issues?{" "}
+        <a href="mailto:webdeveloper@sus.ubc.ca" className={styles.helpLink}>
           Contact webdeveloper@sus.ubc.ca
         </a>
       </span>
 
       {!isLogin && (
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          style={{ marginLeft: "16px", background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", border: "none", borderRadius: "6px", padding: "6px 12px", fontSize: "0.85rem", cursor: "pointer" }}
-        >
+        <button className={styles.signOutButton} onClick={() => signOut({ callbackUrl: "/" })}>
           Sign out
         </button>
       )}

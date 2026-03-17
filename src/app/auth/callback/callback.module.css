@@ -1,0 +1,38 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 40px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.heading {
+  font-size: 1.5rem;
+}
+
+.body {
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.errorMessage {
+  color: var(--error);
+  margin-top: 8px;
+}
+
+.backLink {
+  display: block;
+  margin-top: 24px;
+  color: var(--navy);
+}
