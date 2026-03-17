@@ -32,19 +32,33 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
-.helpText {
+.navRight {
   margin-left: auto;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.helpLink {
+.helpIconButton {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.8);
-  text-decoration: underline;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.helpIconButton:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .signOutButton {
-  margin-left: 16px;
   background: rgba(255, 255, 255, 0.12);
   color: rgba(255, 255, 255, 0.8);
   border: none;
@@ -56,4 +70,55 @@
 
 .signOutButton:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* Help modal */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modalCard {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.modalHeading {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}
+
+.modalBody {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.modalBody ol,
+.modalBody ul {
+  padding-left: 1.25rem;
+  margin: 8px 0;
+}
+
+.modalBody p {
+  margin: 8px 0 0;
+}
+
+.modalBody strong {
+  color: var(--text);
+}
+
+.dismissButton {
+  margin-top: 24px;
+  width: 100%;
 }
