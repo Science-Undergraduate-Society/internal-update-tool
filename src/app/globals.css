@@ -42,9 +42,12 @@ button {
   --navy: #0b1f3a;
   --navy-soft: #162f54;
   --navy-accent: #1f4fd8;
+  --nav-bg: #0b1f3a;
 
   --bg: #ffffff;
   --surface: #f7f9fc;
+  --card-bg: #ffffff;
+  --input-bg: #ffffff;
   --border: #dce3ee;
 
   --text: #0f172a;
@@ -52,7 +55,19 @@ button {
 
   --success: #166534;
   --error: #991b1b;
+
+  --badge-delete-bg: #fee2e2;
+  --badge-delete-text: #991b1b;
+  --badge-edit-bg: #fef3c7;
+  --badge-edit-text: #92400e;
+  --badge-new-bg: #dcfce7;
+  --badge-new-text: #166534;
+
+  --item-border: #ccc;
+  --item-border-delete: #fca5a5;
+  --item-border-edit: #fde68a;
 }
+
 
 /* ================================
    Layout Helpers
@@ -93,7 +108,8 @@ select {
   padding: 0.5rem 0.6rem;
   border-radius: 6px;
   border: 1px solid var(--border);
-  background: white;
+  background: var(--input-bg);
+  color: var(--text);
 }
 
 input:focus,
@@ -134,7 +150,7 @@ button:disabled {
 }
 
 .card {
-  background: var(--surface);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 16px;
@@ -160,18 +176,18 @@ button:disabled {
 }
 
 .badgeDelete {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--badge-delete-bg);
+  color: var(--badge-delete-text);
 }
 
 .badgeEdit {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--badge-edit-bg);
+  color: var(--badge-edit-text);
 }
 
 .badgeNew {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--badge-new-bg);
+  color: var(--badge-new-text);
 }
 
 /* ================================
@@ -179,18 +195,19 @@ button:disabled {
    (used on dashboard and review)
    ================================ */
 .itemCard {
-  border: 1px solid #ccc;
+  border: 1px solid var(--item-border);
   padding: 12px;
   margin-bottom: 12px;
   border-radius: 6px;
+  background: var(--card-bg);
 }
 
 .itemCardDelete {
-  border-color: #fca5a5;
+  border-color: var(--item-border-delete);
 }
 
 .itemCardEdit {
-  border-color: #fde68a;
+  border-color: var(--item-border-edit);
 }
 
 /* ================================

@@ -1,5 +1,5 @@
 .nav {
-  background: var(--navy);
+  background: var(--nav-bg);
   padding: 0 24px;
   display: flex;
   align-items: center;

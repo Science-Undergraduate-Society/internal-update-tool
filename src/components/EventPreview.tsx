@@ -64,7 +64,7 @@ export default function PreviewButton({ data }: { data: EventPreviewData }) {
                   </button>
                 ))}
               </div>
-              <button className={styles.closeButton} onClick={() => setOpen(false)}>✕</button>
+              <button className={styles.closeButton} onClick={() => setOpen(false)}>×</button>
             </div>
 
             <iframe

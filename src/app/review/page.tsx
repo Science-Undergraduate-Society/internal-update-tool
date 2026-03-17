@@ -77,13 +77,13 @@ export default function PendingSubmissionsPage() {
           className={`itemCard ${sub.action === "delete" ? "itemCardDelete" : sub.linkedDocId ? "itemCardEdit" : ""}`}
         >
           {sub.action === "delete" && (
-            <div className="badge badgeDelete">🗑️ Deletion Request</div>
+            <div className="badge badgeDelete">Deletion Request</div>
           )}
           {!sub.action && sub.linkedDocId && (
-            <div className="badge badgeEdit">✏️ Edit Request</div>
+            <div className="badge badgeEdit">Edit Request</div>
           )}
           {!sub.action && !sub.linkedDocId && (
-            <div className="badge badgeNew">➕ New Submission</div>
+            <div className="badge badgeNew">New Submission</div>
           )}
           <p className={styles.sectionLabel}><strong>Section:</strong> {sub.section}</p>
           {Object.entries(sub.data).map(([key, value]) => (

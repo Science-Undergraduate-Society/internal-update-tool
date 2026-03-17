@@ -11,7 +11,7 @@
 }
 
 .modalCard {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
   width: 100%;
   max-width: 1000px;
@@ -27,14 +27,14 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .modalHeaderText {
   font-size: 13px;
   font-weight: 600;
-  color: #555;
+  color: var(--text-muted);
 }
 
 .tabList {
@@ -47,8 +47,8 @@
   font-size: 12px;
   font-weight: 400;
   background: transparent;
-  color: #555;
-  border: 1px solid #ccc;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
 }
@@ -66,14 +66,14 @@
   border: none;
   font-size: 18px;
   cursor: pointer;
-  color: #888;
+  color: var(--text-muted);
   line-height: 1;
   padding: 0;
 }
 
 .closeButton:hover {
   background: none;
-  color: #333;
+  color: var(--text);
 }
 
 .iframe {

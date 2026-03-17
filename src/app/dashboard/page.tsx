@@ -134,10 +134,10 @@ export default function AdminDashboard() {
           className={`itemCard ${pendingDeletions.has(item.id) ? "itemCardDelete" : pendingEdits.has(item.id) ? "itemCardEdit" : ""}`}
         >
           {pendingDeletions.has(item.id) && (
-            <div className="badge badgeDelete">🗑️ Deletion Pending Review</div>
+            <div className="badge badgeDelete">Deletion Pending Review</div>
           )}
           {pendingEdits.has(item.id) && (
-            <div className="badge badgeEdit">✏️ Edit Pending Review</div>
+            <div className="badge badgeEdit">Edit Pending Review</div>
           )}
           <h3>{item.title}</h3>
           <p>{item.description}</p>

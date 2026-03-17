@@ -17,6 +17,7 @@ export default function Navbar() {
   const { data: session } = useSession();
   const isLogin = pathname === "/";
 
+
   const role = session?.user?.name;
   const canReview = role ? REVIEW_ROLES.includes(role) : false;
 

@@ -1,6 +1,7 @@
 .formContainer {
   max-width: 600px;
   padding: 24px;
+  margin: 0 auto;
 }
 
 .editHint {
