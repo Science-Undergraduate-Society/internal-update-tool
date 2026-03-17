@@ -66,7 +66,7 @@ export default function PendingSubmissionsPage() {
   };
 
   return (
-    <div className="pageContainer">
+    <div className={styles.page}>
       <h1>Pending Submissions</h1>
 
       {pending.length === 0 && <p>No pending submissions.</p>}

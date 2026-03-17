@@ -1,3 +1,9 @@
+.page {
+  padding: 24px;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
 .sectionLabel {
   font-size: 0.8rem;
   color: var(--text-muted);

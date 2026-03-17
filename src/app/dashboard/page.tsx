@@ -110,7 +110,7 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="pageContainer">
+    <div className={styles.page}>
       <h1>Admin Dashboard</h1>
 
       <label>

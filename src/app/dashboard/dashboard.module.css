@@ -1,3 +1,9 @@
+.page {
+  padding: 24px;
+  max-width: 1250px;
+  margin: 0 auto;
+}
+
 .categorySelect {
   display: block;
   margin: 12px 0;
