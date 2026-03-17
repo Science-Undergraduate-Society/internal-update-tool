@@ -12,6 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
+import PreviewButton from "../../components/EventPreview";
 
 interface PendingSubmission {
   id: string;
@@ -110,19 +111,25 @@ export default function PendingSubmissionsPage() {
             </p>
           ))}
 
-          <div style={{ marginTop: 8 }}>
-            <button
-              onClick={() => handleApprove(sub)}
-              style={{ marginRight: 8, background: "green", color: "white" }}
-            >
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <button onClick={() => handleApprove(sub)} style={{ background: "green", color: "white" }}>
               Approve
             </button>
-            <button
-              onClick={() => handleReject(sub)}
-              style={{ background: "red", color: "white" }}
-            >
+            <button onClick={() => handleReject(sub)} style={{ background: "red", color: "white" }}>
               Reject
             </button>
+            {(sub.section === "events" || sub.section === "initiatives") && (
+              <PreviewButton data={{
+                title: sub.data.title ?? "",
+                description: sub.data.description ?? "",
+                date: sub.data.date,
+                time: sub.data.time,
+                location: sub.data.location,
+                link: sub.data.link,
+                image: sub.data.image,
+                isInitiative: sub.section === "initiatives",
+              }} />
+            )}
           </div>
         </div>
       ))}

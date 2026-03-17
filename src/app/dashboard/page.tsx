@@ -12,21 +12,23 @@ import {
 } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import { SectionType } from "../../types/submissions";
+import PreviewButton from "../../components/EventPreview";
 
-type Category = SectionType | "pantry";
+type Category = SectionType | "pantry" | "initiatives";
 
 interface Submission {
   id: string;
   title: string;
   description: string;
   date?: string;
+  time?: string;
   location?: string;
   link?: string;
-  poster?: string;
+  image?: string;
 }
 
-const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events", "tutors"];
-const CATEGORIES: Category[] = ["clubs", "pantry", "events", "tutors"];
+const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events", "initiatives", "tutors"];
+const CATEGORIES: Category[] = ["clubs", "pantry", "events", "initiatives", "tutors"];
 
 export default function AdminDashboard() {
   const [data, setData] = useState<Record<Category, Submission[]>>(
@@ -50,9 +52,10 @@ export default function AdminDashboard() {
           title: raw.title ?? raw.name ?? "",
           description: raw.description ?? raw.bio ?? "",
           date: raw.date ?? "",
+          time: raw.time ?? "",
           location: raw.location ?? "",
           link: raw.link ?? "",
-          poster: raw.poster ?? "",
+          image: raw.image ?? raw.poster ?? "",
         };
       });
     }
@@ -104,8 +107,10 @@ export default function AdminDashboard() {
       title: item.title ?? "",
       description: item.description ?? "",
       date: item.date ?? "",
+      time: item.time ?? "",
       location: item.location ?? "",
       link: item.link ?? "",
+      image: item.image ?? "",
     });
     router.push(`/submission?${params.toString()}`);
   };
@@ -123,7 +128,9 @@ export default function AdminDashboard() {
           style={{ display: "block", margin: "12px 0", padding: 6 }}
         >
           {CATEGORIES.map((cat) => (
-            <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>
+            <option key={cat} value={cat}>
+              {cat === "initiatives" ? "Initiatives" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </option>
           ))}
         </select>
       </label>
@@ -151,7 +158,7 @@ export default function AdminDashboard() {
           )}
           <h3>{item.title}</h3>
           <p>{item.description}</p>
-          {item.date && <p>Date: {item.date}</p>}
+          {item.date && <p>Date: {item.date}{item.time ? ` at ${item.time}` : ""}</p>}
           {item.location && <p>Location: {item.location}</p>}
           {item.link && (
             <p>
@@ -161,23 +168,33 @@ export default function AdminDashboard() {
               </a>
             </p>
           )}
-          {item.poster && (
+          {item.image && (
             <img
-              src={item.poster}
+              src={item.image}
               alt={item.title}
               style={{ width: 100, height: 100, objectFit: "cover", marginRight: 4 }}
             />
           )}
-          <div style={{ marginTop: 8 }}>
-            <button onClick={() => handleEdit(item)} style={{ marginRight: 8 }}>
-              Edit
-            </button>
+          <div style={{ marginTop: 8, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <button onClick={() => handleEdit(item)}>Edit</button>
             <button
               onClick={() => handleDelete(selectedCategory, item)}
               disabled={pendingDeletions.has(item.id)}
             >
               Delete
             </button>
+            {(selectedCategory === "events" || selectedCategory === "initiatives") && (
+              <PreviewButton data={{
+                title: item.title,
+                description: item.description,
+                date: item.date,
+                time: item.time,
+                location: item.location,
+                link: item.link,
+                image: item.image,
+                isInitiative: selectedCategory === "initiatives",
+              }} />
+            )}
           </div>
         </div>
       ))}

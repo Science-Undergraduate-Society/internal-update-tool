@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { REVIEW_ROLES } from "../../lib/auth";
 
 const links = [
@@ -69,6 +69,15 @@ export default function Navbar() {
           Contact webdeveloper@sus.ubc.ca
         </a>
       </span>
+
+      {!isLogin && (
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          style={{ marginLeft: "16px", background: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.8)", border: "none", borderRadius: "6px", padding: "6px 12px", fontSize: "0.85rem", cursor: "pointer" }}
+        >
+          Sign out
+        </button>
+      )}
     </nav>
   );
 }

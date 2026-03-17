@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../../lib/firebase";
 import CourseSelect from "../../components/CourseSelect";
+import PreviewButton from "../../components/EventPreview";
 
-type Category = "clubs" | "pantry" | "events" | "tutors";
+type Category = "clubs" | "pantry" | "events" | "tutors" | "initiatives";
 
 function SubmissionForm() {
   const searchParams = useSearchParams();
@@ -19,8 +20,10 @@ function SubmissionForm() {
   const [title, setTitle] = useState(searchParams.get("title") ?? "");
   const [description, setDescription] = useState(searchParams.get("description") ?? "");
   const [eventDate, setEventDate] = useState(searchParams.get("date") ?? "");
+  const [eventTime, setEventTime] = useState(searchParams.get("time") ?? "");
   const [location, setLocation] = useState(searchParams.get("location") ?? "");
   const [link, setLink] = useState(searchParams.get("link") ?? "");
+  const [image, setImage] = useState(searchParams.get("image") ?? "");
   const [courses, setCourses] = useState<string[]>(
     searchParams.get("courses") ? searchParams.get("courses")!.split(",").map((c) => c.trim()) : []
   );
@@ -29,6 +32,7 @@ function SubmissionForm() {
 
   const isTutor = category === "tutors";
   const isEvent = category === "events";
+  const isInitiative = category === "initiatives";
 
   const handleSubmit = async () => {
     if (!category) { alert("Select a category"); return; }
@@ -44,11 +48,26 @@ function SubmissionForm() {
             link: link || null,
             image: null, // image upload not yet implemented
           }
-        : {
+        : isEvent
+        ? {
             title,
             description,
             date: eventDate || null,
+            time: eventTime || null,
             location: location || null,
+            link: link || null,
+            image: image || null,
+          }
+        : isInitiative
+        ? {
+            title,
+            description,
+            link: link || null,
+            image: image || null,
+          }
+        : {
+            title,
+            description,
             link: link || null,
           };
 
@@ -103,6 +122,7 @@ function SubmissionForm() {
             <option value="">Select one</option>
             <option value="clubs">Clubs</option>
             <option value="events">Events</option>
+            <option value="initiatives">Initiatives</option>
             <option value="pantry">Pantry</option>
             <option value="tutors">Tutors</option>
           </select>
@@ -130,8 +150,42 @@ function SubmissionForm() {
           </>
         )}
 
-        {/* Event / default fields */}
-        {!isTutor && (
+        {/* Event fields */}
+        {isEvent && (
+          <>
+            <div>
+              <label>Event Title</label>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+            <div>
+              <label>Description</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
+            </div>
+            <div>
+              <label>Date</label>
+              <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
+            </div>
+            <div>
+              <label>Time</label>
+              <input type="time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} />
+            </div>
+            <div>
+              <label>Location</label>
+              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
+            </div>
+            <div>
+              <label>Event Link</label>
+              <input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
+            </div>
+            <div>
+              <label>Image URL</label>
+              <input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} />
+            </div>
+          </>
+        )}
+
+        {/* Initiative fields */}
+        {isInitiative && (
           <>
             <div>
               <label>Title</label>
@@ -141,15 +195,27 @@ function SubmissionForm() {
               <label>Description</label>
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
             </div>
-            {(isEvent || isEdit) && (
-              <div>
-                <label>Event Date</label>
-                <input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} />
-              </div>
-            )}
             <div>
-              <label>Location</label>
-              <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
+              <label>Link</label>
+              <input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} />
+            </div>
+            <div>
+              <label>Image URL</label>
+              <input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} />
+            </div>
+          </>
+        )}
+
+        {/* Default fields (clubs, pantry) */}
+        {!isTutor && !isEvent && !isInitiative && (
+          <>
+            <div>
+              <label>Title</label>
+              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
+            </div>
+            <div>
+              <label>Description</label>
+              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} />
             </div>
             <div>
               <label>Link</label>
@@ -158,9 +224,14 @@ function SubmissionForm() {
           </>
         )}
 
-        <button onClick={handleSubmit} disabled={submitting}>
-          {submitting ? "Submitting..." : isEdit ? "Submit for Review" : "Submit"}
-        </button>
+        <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+          <button onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Submitting..." : isEdit ? "Submit for Review" : "Submit"}
+          </button>
+          {(isEvent || isInitiative) && (
+            <PreviewButton data={{ title, description, date: eventDate, time: eventTime, location, link, image, isInitiative }} />
+          )}
+        </div>
       </div>
     </div>
   );
