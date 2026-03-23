@@ -10,6 +10,12 @@
   width: auto;
 }
 
+.thumbnailRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .itemThumbnail {
   width: 100px;
   height: 100px;

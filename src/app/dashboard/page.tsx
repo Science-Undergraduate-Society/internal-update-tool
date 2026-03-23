@@ -24,8 +24,8 @@ interface Submission {
   date?: string;
   time?: string;
   location?: string;
-  link?: string;
-  image?: string;
+  links?: string[];
+  images?: string[];
 }
 
 const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events", "initiatives", "tutors"];
@@ -54,8 +54,8 @@ export default function AdminDashboard() {
           date: raw.date ?? "",
           time: raw.time ?? "",
           location: raw.location ?? "",
-          link: raw.link ?? "",
-          image: raw.image ?? raw.poster ?? "",
+          links: Array.isArray(raw.links) ? raw.links : raw.link ? [raw.link] : [],
+          images: Array.isArray(raw.images) ? raw.images : raw.image ?? raw.poster ? [raw.image ?? raw.poster] : [],
         };
       });
     }
@@ -103,9 +103,9 @@ export default function AdminDashboard() {
       date: item.date ?? "",
       time: item.time ?? "",
       location: item.location ?? "",
-      link: item.link ?? "",
-      image: item.image ?? "",
     });
+    (item.links ?? []).forEach((l) => params.append("links", l));
+    (item.images ?? []).forEach((img) => params.append("images", img));
     router.push(`/submission?${params.toString()}`);
   };
 
@@ -143,11 +143,15 @@ export default function AdminDashboard() {
           <p>{item.description}</p>
           {item.date && <p>Date: {item.date}{item.time ? ` at ${item.time}` : ""}</p>}
           {item.location && <p>Location: {item.location}</p>}
-          {item.link && (
-            <p>Link: <a href={item.link} target="_blank" rel="noreferrer">{item.link}</a></p>
-          )}
-          {item.image && (
-            <img src={item.image} alt={item.title} className={styles.itemThumbnail} />
+          {(item.links ?? []).map((l, i) => (
+            <p key={i}>Link: <a href={l} target="_blank" rel="noreferrer">{l}</a></p>
+          ))}
+          {(item.images ?? []).length > 0 && (
+            <div className={styles.thumbnailRow}>
+              {item.images!.map((img, i) => (
+                <img key={i} src={img} alt={`${item.title} ${i + 1}`} className={styles.itemThumbnail} />
+              ))}
+            </div>
           )}
           <div className="actionRow">
             <button onClick={() => handleEdit(item)} disabled={pendingDeletions.has(item.id)}>Edit</button>
@@ -167,6 +171,8 @@ export default function AdminDashboard() {
                 link: item.link,
                 image: item.image,
                 isInitiative: selectedCategory === "initiatives",
+                link: (item.links ?? [])[0],
+                image: (item.images ?? [])[0],
               }} />
             )}
           </div>

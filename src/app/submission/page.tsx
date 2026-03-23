@@ -10,6 +10,26 @@ import styles from "./submission.module.css";
 
 type Category = "clubs" | "pantry" | "events" | "tutors" | "initiatives";
 
+function MultiUrlInput({ values, onChange, addLabel }: { values: string[]; onChange: (v: string[]) => void; addLabel: string }) {
+  const update = (i: number, val: string) => onChange(values.map((v, idx) => idx === i ? val : v));
+  const remove = (i: number) => onChange(values.filter((_, idx) => idx !== i));
+  const add = () => onChange([...values, ""]);
+
+  return (
+    <div className={styles.linksField}>
+      {values.map((v, i) => (
+        <div key={i} className={styles.linkRow}>
+          <input type="url" placeholder="https://..." value={v} onChange={(e) => update(i, e.target.value)} />
+          {values.length > 1 && (
+            <button type="button" className={styles.removeLinkButton} onClick={() => remove(i)}>×</button>
+          )}
+        </div>
+      ))}
+      <button type="button" className={styles.addLinkButton} onClick={add}>+ {addLabel}</button>
+    </div>
+  );
+}
+
 function SubmissionForm() {
   const searchParams = useSearchParams();
 
@@ -23,8 +43,17 @@ function SubmissionForm() {
   const [eventDate, setEventDate] = useState(searchParams.get("date") ?? "");
   const [eventTime, setEventTime] = useState(searchParams.get("time") ?? "");
   const [location, setLocation] = useState(searchParams.get("location") ?? "");
-  const [link, setLink] = useState(searchParams.get("link") ?? "");
-  const [image, setImage] = useState(searchParams.get("image") ?? "");
+  const [links, setLinks] = useState<string[]>(
+    searchParams.getAll("links").length > 0 ? searchParams.getAll("links")
+    : searchParams.get("link") ? [searchParams.get("link")!]
+    : [""]
+  );
+  const [tutorLink, setTutorLink] = useState(searchParams.get("link") ?? "");
+  const [images, setImages] = useState<string[]>(
+    searchParams.getAll("images").length > 0 ? searchParams.getAll("images")
+    : searchParams.get("image") ? [searchParams.get("image")!]
+    : [""]
+  );
   const [courses, setCourses] = useState<string[]>(
     searchParams.get("courses") ? searchParams.get("courses")!.split(",").map((c) => c.trim()) : []
   );
@@ -35,6 +64,9 @@ function SubmissionForm() {
   const isEvent = category === "events";
   const isInitiative = category === "initiatives";
 
+  const filteredLinks = links.filter((l) => l.trim());
+  const filteredImages = images.filter((img) => img.trim());
+
   const handleSubmit = async () => {
     if (!category) { alert("Select a category"); return; }
     if (!title) { alert("Fill out required fields"); return; }
@@ -42,12 +74,12 @@ function SubmissionForm() {
     setSubmitting(true);
     try {
       const data: Record<string, unknown> = isTutor
-        ? { name: title, bio: description, courses, link: link || null, image: null }
+        ? { name: title, bio: description, courses, link: tutorLink || null }
         : isEvent
-        ? { title, description, date: eventDate || null, time: eventTime || null, location: location || null, link: link || null, image: image || null }
+        ? { title, description, date: eventDate || null, time: eventTime || null, location: location || null, links: filteredLinks.length > 0 ? filteredLinks : null, images: filteredImages.length > 0 ? filteredImages : null }
         : isInitiative
-        ? { title, description, link: link || null, image: image || null }
-        : { title, description, link: link || null };
+        ? { title, description, links: filteredLinks.length > 0 ? filteredLinks : null, images: filteredImages.length > 0 ? filteredImages : null }
+        : { title, description, links: filteredLinks.length > 0 ? filteredLinks : null };
 
       const submissionData: Record<string, unknown> = { section: category, status: "pending", data };
       if (isEdit) {
@@ -99,7 +131,7 @@ function SubmissionForm() {
             <div><label>Name</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
             <div><label>Bio</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
             <div><label>Courses Taught</label><CourseSelect selected={courses} onChange={setCourses} /></div>
-            <div><label>Koalender Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
+            <div><label>Koalender Link</label><input type="url" placeholder="https://..." value={tutorLink} onChange={(e) => setTutorLink(e.target.value)} /></div>
           </>
         )}
 
@@ -111,8 +143,8 @@ function SubmissionForm() {
             <div><label>Date</label><input type="date" value={eventDate} onChange={(e) => setEventDate(e.target.value)} /></div>
             <div><label>Time</label><input type="time" value={eventTime} onChange={(e) => setEventTime(e.target.value)} /></div>
             <div><label>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} /></div>
-            <div><label>Event Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
-            <div><label>Image URL</label><input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} /></div>
+            <div><label>Links</label><MultiUrlInput values={links} onChange={setLinks} addLabel="Add link" /></div>
+            <div><label>Images</label><MultiUrlInput values={images} onChange={setImages} addLabel="Add image" /></div>
           </>
         )}
 
@@ -121,8 +153,8 @@ function SubmissionForm() {
           <>
             <div><label>Title</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
             <div><label>Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
-            <div><label>Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
-            <div><label>Image URL</label><input type="url" placeholder="https://..." value={image} onChange={(e) => setImage(e.target.value)} /></div>
+            <div><label>Links</label><MultiUrlInput values={links} onChange={setLinks} addLabel="Add link" /></div>
+            <div><label>Images</label><MultiUrlInput values={images} onChange={setImages} addLabel="Add image" /></div>
           </>
         )}
 
@@ -131,7 +163,7 @@ function SubmissionForm() {
           <>
             <div><label>Title</label><input type="text" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
             <div><label>Description</label><textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={4} /></div>
-            <div><label>Link</label><input type="url" placeholder="https://..." value={link} onChange={(e) => setLink(e.target.value)} /></div>
+            <div><label>Links</label><MultiUrlInput values={links} onChange={setLinks} addLabel="Add link" /></div>
           </>
         )}
 
@@ -140,7 +172,7 @@ function SubmissionForm() {
             {submitting ? "Submitting..." : isEdit ? "Submit for Review" : "Submit"}
           </button>
           {(isEvent || isInitiative) && (
-            <PreviewButton data={{ title, description, date: eventDate, time: eventTime, location, link, image, isInitiative }} />
+            <PreviewButton data={{ title, description, date: eventDate, time: eventTime, location, link: filteredLinks[0], image: filteredImages[0], isInitiative }} />
           )}
         </div>
       </div>
