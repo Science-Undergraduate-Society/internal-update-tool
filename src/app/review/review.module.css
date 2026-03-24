@@ -4,6 +4,11 @@
   margin: 0 auto;
 }
 
+.none {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .sectionLabel {
   font-size: 0.8rem;
   color: var(--text-muted);

@@ -57,6 +57,7 @@ function SubmissionForm() {
   const [courses, setCourses] = useState<string[]>(
     searchParams.get("courses") ? searchParams.get("courses")!.split(",").map((c) => c.trim()) : []
   );
+  const [isFeatured, setIsFeatured] = useState(searchParams.get("isFeatured") === "true");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -76,9 +77,9 @@ function SubmissionForm() {
       const data: Record<string, unknown> = isTutor
         ? { name: title, bio: description, courses, link: tutorLink || null }
         : isEvent
-        ? { title, description, date: eventDate || null, time: eventTime || null, location: location || null, links: filteredLinks.length > 0 ? filteredLinks : null, images: filteredImages.length > 0 ? filteredImages : null }
+        ? { type: "event", title, description, date: eventDate || null, time: eventTime || null, location: location || null, links: filteredLinks.length > 0 ? filteredLinks : null, images: filteredImages.length > 0 ? filteredImages : null, isFeatured }
         : isInitiative
-        ? { title, description, links: filteredLinks.length > 0 ? filteredLinks : null, images: filteredImages.length > 0 ? filteredImages : null }
+        ? { type: "initiative", title, description, links: filteredLinks.length > 0 ? filteredLinks : null, images: filteredImages.length > 0 ? filteredImages : null }
         : { title, description, links: filteredLinks.length > 0 ? filteredLinks : null };
 
       const submissionData: Record<string, unknown> = { section: category, status: "pending", data };
@@ -145,6 +146,10 @@ function SubmissionForm() {
             <div><label>Location</label><input type="text" value={location} onChange={(e) => setLocation(e.target.value)} /></div>
             <div><label>Links</label><MultiUrlInput values={links} onChange={setLinks} addLabel="Add link" /></div>
             <div><label>Images</label><MultiUrlInput values={images} onChange={setImages} addLabel="Add image" /></div>
+            <div className={styles.checkboxField}>
+              <input type="checkbox" id="isFeatured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
+              <label htmlFor="isFeatured">Feature in Upcoming Events</label>
+            </div>
           </>
         )}
 

@@ -58,6 +58,24 @@
   color: var(--text);
 }
 
+.checkboxField {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checkboxField input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.checkboxField label {
+  cursor: pointer;
+  font-weight: normal;
+}
+
 .formActions {
   display: flex;
   gap: 1rem;

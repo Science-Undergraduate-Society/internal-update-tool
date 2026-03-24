@@ -26,6 +26,7 @@ interface Submission {
   location?: string;
   links?: string[];
   images?: string[];
+  isFeatured?: boolean;
 }
 
 const DIRECT_COLLECTIONS: Category[] = ["clubs", "pantry", "events", "initiatives", "tutors"];
@@ -46,16 +47,17 @@ export default function AdminDashboard() {
     for (const cat of DIRECT_COLLECTIONS) {
       const snapshot = await getDocs(collection(db, cat));
       newData[cat] = snapshot.docs.map((d) => {
-        const raw = d.data() as Record<string, string>;
+        const raw = d.data() as Record<string, unknown>;
         return {
           id: d.id,
-          title: raw.title ?? raw.name ?? "",
-          description: raw.description ?? raw.bio ?? "",
-          date: raw.date ?? "",
-          time: raw.time ?? "",
-          location: raw.location ?? "",
-          links: Array.isArray(raw.links) ? raw.links : raw.link ? [raw.link] : [],
-          images: Array.isArray(raw.images) ? raw.images : raw.image ?? raw.poster ? [raw.image ?? raw.poster] : [],
+          title: (raw.title as string) ?? (raw.name as string) ?? "",
+          description: (raw.description as string) ?? (raw.bio as string) ?? "",
+          date: (raw.date as string) ?? "",
+          time: (raw.time as string) ?? "",
+          location: (raw.location as string) ?? "",
+          links: Array.isArray(raw.links) ? raw.links as string[] : raw.link ? [raw.link as string] : [],
+          images: Array.isArray(raw.images) ? raw.images as string[] : (raw.image ?? raw.poster) ? [(raw.image ?? raw.poster) as string] : [],
+          isFeatured: raw.isFeatured === true,
         };
       });
     }
@@ -91,7 +93,7 @@ export default function AdminDashboard() {
       linkedCollection: category,
       data: { title: item.title, description: item.description },
     });
-    alert("Deletion request submitted for review.");
+    await fetchData();
   };
 
   const handleEdit = (item: Submission) => {
@@ -103,6 +105,7 @@ export default function AdminDashboard() {
       date: item.date ?? "",
       time: item.time ?? "",
       location: item.location ?? "",
+      isFeatured: String(item.isFeatured ?? false),
     });
     (item.links ?? []).forEach((l) => params.append("links", l));
     (item.images ?? []).forEach((img) => params.append("images", img));
@@ -138,6 +141,9 @@ export default function AdminDashboard() {
           )}
           {pendingEdits.has(item.id) && (
             <div className="badge badgeEdit">Edit Pending Review</div>
+          )}
+          {item.isFeatured && (
+            <div className="badge badgeNew">Featured in Upcoming Events</div>
           )}
           <h3>{item.title}</h3>
           <p>{item.description}</p>

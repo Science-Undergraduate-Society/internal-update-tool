@@ -19,7 +19,7 @@ interface PendingSubmission {
   id: string;
   section: string;
   action?: "delete";
-  data: Record<string, string>;
+  data: Record<string, unknown>;
   linkedDocId?: string;
   linkedCollection?: string;
 }
@@ -86,16 +86,51 @@ export default function PendingSubmissionsPage() {
             <div className="badge badgeNew">New Submission</div>
           )}
           <p className={styles.sectionLabel}><strong>Section:</strong> {sub.section}</p>
-          {Object.entries(sub.data).map(([key, value]) => (
-            <p key={key}>
-              <strong>{key}:</strong>{" "}
-              {value?.startsWith?.("http") ? (
-                <a href={value} target="_blank" rel="noreferrer">{value}</a>
-              ) : (
-                value
-              )}
-            </p>
-          ))}
+          {(() => {
+            const d = sub.data;
+            const isEvent = sub.section === "events" || sub.section === "initiatives";
+            const ordered = isEvent
+              ? ["title", "date", "time", "location", "description", "links", "images"]
+              : Object.keys(d);
+            const remaining = Object.keys(d).filter(
+              (k) => !ordered.includes(k) && k !== "isFeatured"
+            );
+            const keys = [...ordered, ...remaining];
+
+            const isEmpty = (v: unknown) =>
+              v === null || v === undefined || v === "" ||
+              (Array.isArray(v) && v.filter(Boolean).length === 0);
+
+            return (
+              <>
+                {keys.map((key) => {
+                  const value = d[key];
+                  if (isEmpty(value)) {
+                    return <p key={key}><strong>{key}:</strong> <span className={styles.none}>none specified</span></p>;
+                  }
+                  if (Array.isArray(value)) {
+                    return value.filter(Boolean).map((v, i) => (
+                      <p key={`${key}-${i}`}>
+                        <strong>{key}:</strong>{" "}
+                        {typeof v === "string" && v.startsWith("http")
+                          ? <a href={v} target="_blank" rel="noreferrer">{v}</a>
+                          : String(v)}
+                      </p>
+                    ));
+                  }
+                  return (
+                    <p key={key}>
+                      <strong>{key}:</strong>{" "}
+                      {typeof value === "string" && value.startsWith("http")
+                        ? <a href={value} target="_blank" rel="noreferrer">{value}</a>
+                        : String(value)}
+                    </p>
+                  );
+                })}
+                <p><strong>Featured:</strong> {d.isFeatured === true ? "Yes" : "No"}</p>
+              </>
+            );
+          })()}
 
           <div className="actionRow">
             <button className={styles.approveButton} onClick={() => handleApprove(sub)}>Approve</button>
