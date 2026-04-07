@@ -137,13 +137,13 @@ export default function PendingSubmissionsPage() {
             <button className={styles.rejectButton} onClick={() => handleReject(sub)}>Reject</button>
             {(sub.section === "events" || sub.section === "initiatives") && (
               <PreviewButton data={{
-                title: sub.data.title ?? "",
-                description: sub.data.description ?? "",
-                date: sub.data.date,
-                time: sub.data.time,
-                location: sub.data.location,
-                link: sub.data.link,
-                image: sub.data.image,
+                title: (sub.data.title as string) ?? "",
+                description: (sub.data.description as string) ?? "",
+                date: sub.data.date as string | undefined,
+                time: sub.data.time as string | undefined,
+                location: sub.data.location as string | undefined,
+                link: Array.isArray(sub.data.links) ? (sub.data.links as string[])[0] : sub.data.link as string | undefined,
+                image: Array.isArray(sub.data.images) ? (sub.data.images as string[])[0] : sub.data.image as string | undefined,
                 isInitiative: sub.section === "initiatives",
               }} />
             )}

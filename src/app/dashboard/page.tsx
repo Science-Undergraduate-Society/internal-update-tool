@@ -174,8 +174,6 @@ export default function AdminDashboard() {
                 date: item.date,
                 time: item.time,
                 location: item.location,
-                link: item.link,
-                image: item.image,
                 isInitiative: selectedCategory === "initiatives",
                 link: (item.links ?? [])[0],
                 image: (item.images ?? [])[0],
